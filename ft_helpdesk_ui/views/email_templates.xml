@@ -32,7 +32,7 @@
                 </tr>
                 <tr>
                     <td style="padding: 6px 0; color: #6b7280; font-size: 13px;">Priority</td>
-                    <td style="padding: 6px 0; color: #111827;">{{ object.get_selection_label('priority') }}</td>
+                    <td style="padding: 6px 0; color: #111827;">{{ dict(object._fields['priority'].selection).get(object.priority, '') }}</td>
                 </tr>
             </table>
         </div>

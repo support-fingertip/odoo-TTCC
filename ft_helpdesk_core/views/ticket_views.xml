@@ -191,10 +191,6 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button name="action_open_activities" type="object" class="oe_stat_button" icon="fa-clock-o"
-                                invisible="1">
-                            <field name="activity_ids" string="Activities" widget="statinfo"/>
-                        </button>
                     </div>
                     <widget name="web_ribbon" title="Escalated" bg_color="text-bg-danger"
                             invisible="not is_escalated"/>

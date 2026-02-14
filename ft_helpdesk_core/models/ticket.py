@@ -73,6 +73,8 @@ class HelpdeskTicket(models.Model):
         required=True, index=True,
     )
 
+    color = fields.Integer(string='Color Index')
+
     # =====================
     # Classification
     # =====================

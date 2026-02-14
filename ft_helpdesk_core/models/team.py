@@ -50,7 +50,7 @@ class HelpdeskTeam(models.Model):
     )
 
     # Round-robin tracking
-    _last_assigned_index = fields.Integer(
+    last_assigned_index = fields.Integer(
         string='Last Assigned Index', default=0,
     )
 
@@ -79,7 +79,7 @@ class HelpdeskTeam(models.Model):
         members = self.member_user_ids
         if not members:
             return self.default_assignee_id or self.leader_user_id
-        idx = (self._last_assigned_index or 0) % len(members)
+        idx = (self.last_assigned_index or 0) % len(members)
         assignee = members[idx]
-        self._last_assigned_index = idx + 1
+        self.last_assigned_index = idx + 1
         return assignee

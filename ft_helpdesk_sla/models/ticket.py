@@ -7,10 +7,12 @@ class HelpdeskTicketSLA(models.Model):
     sla_status_ids = fields.One2many(
         'ft.helpdesk.sla.status', 'ticket_id', string='SLA Status',
     )
-    sla_state = fields.Selection(
-        related='sla_status_ids.sla_state', string='SLA State',
-        readonly=True,
-    )
+    sla_state = fields.Selection([
+        ('on_track', 'On Track'),
+        ('at_risk', 'At Risk'),
+        ('breached', 'Breached'),
+        ('completed', 'Completed'),
+    ], string='SLA State', compute='_compute_sla_fields', store=False)
     sla_first_response_deadline = fields.Datetime(
         string='First Response Deadline',
         compute='_compute_sla_fields', store=False,
@@ -32,10 +34,12 @@ class HelpdeskTicketSLA(models.Model):
                 ticket.sla_resolution_deadline = status.resolution_deadline
                 ticket.sla_breached = (
                     status.first_response_breached or status.resolution_breached)
+                ticket.sla_state = status.sla_state
             else:
                 ticket.sla_first_response_deadline = False
                 ticket.sla_resolution_deadline = False
                 ticket.sla_breached = False
+                ticket.sla_state = False
 
     @api.model_create_multi
     def create(self, vals_list):
