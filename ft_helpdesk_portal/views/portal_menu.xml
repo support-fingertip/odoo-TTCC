@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Add Support to portal menu -->
+    <template id="portal_my_home_helpdesk" name="Show Support"
+              inherit_id="portal.portal_my_home" priority="40">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/ft_helpdesk_core/static/description/icon.png'"/>
+                <t t-set="title">Support Tickets</t>
+                <t t-set="text">View and manage your support tickets</t>
+                <t t-set="url" t-value="'/my/support'"/>
+                <t t-set="placeholder_count" t-value="'ticket_count'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- Breadcrumb -->
+    <template id="portal_breadcrumb_support" name="Support Breadcrumb"
+              inherit_id="portal.portal_breadcrumbs" priority="40">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'support_home'"
+                class="breadcrumb-item active">
+                Support
+            </li>
+            <li t-if="page_name in ('ticket_list', 'ticket_create', 'ticket_detail')"
+                class="breadcrumb-item">
+                <a href="/my/support">Support</a>
+            </li>
+            <li t-if="page_name == 'ticket_list'"
+                class="breadcrumb-item active">
+                My Tickets
+            </li>
+            <li t-if="page_name == 'ticket_create'"
+                class="breadcrumb-item active">
+                New Ticket
+            </li>
+            <li t-if="page_name == 'ticket_detail'"
+                class="breadcrumb-item active">
+                <t t-out="ticket.ticket_no"/>
+            </li>
+        </xpath>
+    </template>
+</odoo>

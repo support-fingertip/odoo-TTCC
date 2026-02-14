@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================= -->
+    <!-- SUPPORT HOME / DASHBOARD      -->
+    <!-- ============================= -->
+    <template id="portal_support_home" name="Support Home">
+        <t t-call="portal.portal_layout">
+            <t t-set="additional_title">Support</t>
+            <div class="o_portal_wrap">
+                <div class="container py-4">
+                    <!-- Hero Section -->
+                    <div class="text-center mb-5">
+                        <h1 class="display-6 fw-bold text-primary mb-2">How can we help you?</h1>
+                        <p class="text-muted fs-5">Get support, track your tickets, or browse our knowledge base.</p>
+                    </div>
+
+                    <!-- Quick Action Cards -->
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-4">
+                            <a href="/my/support/ticket/new" class="text-decoration-none">
+                                <div class="card h-100 border-0 shadow-sm ft-action-card">
+                                    <div class="card-body text-center p-4">
+                                        <div class="ft-icon-circle bg-primary bg-opacity-10 text-primary mx-auto mb-3">
+                                            <i class="fa fa-plus fa-2x"/>
+                                        </div>
+                                        <h5 class="card-title fw-semibold">Create a Ticket</h5>
+                                        <p class="card-text text-muted small">Submit a new support request and we'll get back to you shortly.</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/my/support/tickets" class="text-decoration-none">
+                                <div class="card h-100 border-0 shadow-sm ft-action-card">
+                                    <div class="card-body text-center p-4">
+                                        <div class="ft-icon-circle bg-info bg-opacity-10 text-info mx-auto mb-3">
+                                            <i class="fa fa-list-alt fa-2x"/>
+                                        </div>
+                                        <h5 class="card-title fw-semibold">My Tickets</h5>
+                                        <p class="card-text text-muted small">View, track, and manage all your support tickets.</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/my/support/kb" class="text-decoration-none">
+                                <div class="card h-100 border-0 shadow-sm ft-action-card">
+                                    <div class="card-body text-center p-4">
+                                        <div class="ft-icon-circle bg-success bg-opacity-10 text-success mx-auto mb-3">
+                                            <i class="fa fa-book fa-2x"/>
+                                        </div>
+                                        <h5 class="card-title fw-semibold">Knowledge Base</h5>
+                                        <p class="card-text text-muted small">Find answers in our articles and documentation.</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="row g-3 mb-5">
+                        <div class="col-6 col-lg-3">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body text-center py-3">
+                                    <div class="fs-2 fw-bold text-primary">
+                                        <t t-out="open_tickets"/>
+                                    </div>
+                                    <div class="small text-muted text-uppercase">Open Tickets</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body text-center py-3">
+                                    <div class="fs-2 fw-bold text-warning">
+                                        <t t-out="pending_tickets"/>
+                                    </div>
+                                    <div class="small text-muted text-uppercase">Awaiting Your Reply</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body text-center py-3">
+                                    <div class="fs-2 fw-bold text-success">
+                                        <t t-out="resolved_tickets"/>
+                                    </div>
+                                    <div class="small text-muted text-uppercase">Resolved</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body text-center py-3">
+                                    <div class="fs-2 fw-bold text-secondary">
+                                        <t t-out="total_tickets"/>
+                                    </div>
+                                    <div class="small text-muted text-uppercase">Total Tickets</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Tickets -->
+                    <t t-if="recent_tickets">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="fw-semibold mb-0">Recent Tickets</h4>
+                            <a href="/my/support/tickets" class="btn btn-sm btn-outline-primary">
+                                View All <i class="fa fa-arrow-right ms-1"/>
+                            </a>
+                        </div>
+                        <div class="card border-0 shadow-sm">
+                            <div class="list-group list-group-flush">
+                                <t t-foreach="recent_tickets" t-as="ticket">
+                                    <a t-attf-href="/my/support/ticket/#{ticket.id}"
+                                       class="list-group-item list-group-item-action py-3">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <span class="text-muted me-2 small">
+                                                    <t t-out="ticket.ticket_no"/>
+                                                </span>
+                                                <span class="fw-medium">
+                                                    <t t-out="ticket.name"/>
+                                                </span>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <t t-call="ft_helpdesk_portal.ticket_state_badge">
+                                                    <t t-set="state" t-value="ticket.state"/>
+                                                </t>
+                                                <t t-call="ft_helpdesk_portal.ticket_priority_badge">
+                                                    <t t-set="priority" t-value="ticket.priority"/>
+                                                </t>
+                                            </div>
+                                        </div>
+                                        <div class="small text-muted mt-1">
+                                            <i class="fa fa-clock-o me-1"/>
+                                            <t t-out="ticket.create_date" t-options='{"widget": "datetime", "format": "dd MMM yyyy, HH:mm"}'/>
+                                        </div>
+                                    </a>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ============================= -->
+    <!-- REUSABLE BADGE COMPONENTS     -->
+    <!-- ============================= -->
+    <template id="ticket_state_badge" name="Ticket State Badge">
+        <span t-if="state == 'new'" class="badge rounded-pill text-bg-secondary">New</span>
+        <span t-if="state == 'open'" class="badge rounded-pill text-bg-primary">In Progress</span>
+        <span t-if="state == 'pending_customer'" class="badge rounded-pill text-bg-warning">Pending Your Reply</span>
+        <span t-if="state == 'pending_internal'" class="badge rounded-pill text-bg-info">Under Review</span>
+        <span t-if="state == 'resolved'" class="badge rounded-pill text-bg-success">Resolved</span>
+        <span t-if="state == 'closed'" class="badge rounded-pill ft-badge-closed">Closed</span>
+        <span t-if="state == 'cancelled'" class="badge rounded-pill text-bg-danger">Cancelled</span>
+    </template>
+
+    <template id="ticket_priority_badge" name="Ticket Priority Badge">
+        <span t-if="priority == '3'" class="badge rounded-pill text-bg-danger">
+            <i class="fa fa-arrow-up"/> Urgent
+        </span>
+        <span t-if="priority == '2'" class="badge rounded-pill text-bg-warning">
+            <i class="fa fa-arrow-up"/> High
+        </span>
+    </template>
+</odoo>

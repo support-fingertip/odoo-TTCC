@@ -1,0 +1,458 @@
+import base64
+import json
+import logging
+
+from odoo import http, fields, _
+from odoo.http import request
+from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager
+from odoo.exceptions import AccessError, MissingError
+from odoo.osv.expression import AND
+
+_logger = logging.getLogger(__name__)
+
+TICKETS_PER_PAGE = 20
+
+
+class HelpdeskPortal(CustomerPortal):
+
+    def _prepare_home_portal_values(self, counters):
+        values = super()._prepare_home_portal_values(counters)
+        if 'ticket_count' in counters:
+            partner = request.env.user.partner_id
+            values['ticket_count'] = request.env['ft.helpdesk.ticket'].search_count([
+                ('customer_id.commercial_partner_id', '=',
+                 partner.commercial_partner_id.id),
+            ])
+        return values
+
+    # =============================
+    # Support Home
+    # =============================
+
+    @http.route('/my/support', type='http', auth='user', website=True)
+    def portal_support_home(self, **kw):
+        partner = request.env.user.partner_id
+        commercial_partner = partner.commercial_partner_id
+        Ticket = request.env['ft.helpdesk.ticket'].sudo()
+        domain = [('customer_id.commercial_partner_id', '=', commercial_partner.id)]
+
+        values = {
+            'page_name': 'support_home',
+            'total_tickets': Ticket.search_count(domain),
+            'open_tickets': Ticket.search_count(
+                AND([domain, [('state', 'not in', ('closed', 'cancelled'))]])),
+            'pending_tickets': Ticket.search_count(
+                AND([domain, [('state', '=', 'pending_customer')]])),
+            'resolved_tickets': Ticket.search_count(
+                AND([domain, [('state', 'in', ('resolved', 'closed'))]])),
+            'recent_tickets': Ticket.search(domain, limit=5, order='create_date desc'),
+        }
+        return request.render('ft_helpdesk_portal.portal_support_home', values)
+
+    # =============================
+    # Ticket List
+    # =============================
+
+    @http.route('/my/support/tickets', type='http', auth='user', website=True)
+    def portal_ticket_list(self, page=1, sortby='date', filterby='all',
+                           search='', search_in='all', **kw):
+        partner = request.env.user.partner_id
+        commercial_partner = partner.commercial_partner_id
+        Ticket = request.env['ft.helpdesk.ticket'].sudo()
+
+        domain = [('customer_id.commercial_partner_id', '=', commercial_partner.id)]
+
+        # Sorting
+        sortings = {
+            'date': {'label': _('Newest'), 'order': 'create_date desc'},
+            'date_asc': {'label': _('Oldest'), 'order': 'create_date asc'},
+            'priority': {'label': _('Priority'), 'order': 'priority desc, create_date desc'},
+            'status': {'label': _('Status'), 'order': 'state asc, create_date desc'},
+            'name': {'label': _('Subject'), 'order': 'name asc'},
+        }
+        order = sortings.get(sortby, sortings['date'])['order']
+
+        # Filtering
+        filters = {
+            'all': {'label': _('All'), 'domain': []},
+            'open': {'label': _('Open'),
+                     'domain': [('state', 'not in', ('closed', 'cancelled'))]},
+            'pending': {'label': _('Pending My Reply'),
+                        'domain': [('state', '=', 'pending_customer')]},
+            'resolved': {'label': _('Resolved'),
+                         'domain': [('state', 'in', ('resolved', 'closed'))]},
+            'urgent': {'label': _('Urgent'),
+                       'domain': [('priority', '=', '3')]},
+        }
+        if filterby in filters:
+            domain = AND([domain, filters[filterby]['domain']])
+
+        # Search
+        if search:
+            search_domains = {
+                'all': ['|', '|',
+                        ('name', 'ilike', search),
+                        ('ticket_no', 'ilike', search),
+                        ('description', 'ilike', search)],
+                'subject': [('name', 'ilike', search)],
+                'ticket_no': [('ticket_no', 'ilike', search)],
+                'description': [('description', 'ilike', search)],
+            }
+            search_domain = search_domains.get(search_in, search_domains['all'])
+            domain = AND([domain, search_domain])
+
+        # Pager
+        ticket_count = Ticket.search_count(domain)
+        pager_values = portal_pager(
+            url='/my/support/tickets',
+            url_args={
+                'sortby': sortby, 'filterby': filterby,
+                'search': search, 'search_in': search_in,
+            },
+            total=ticket_count,
+            page=page,
+            step=TICKETS_PER_PAGE,
+        )
+
+        tickets = Ticket.search(
+            domain, order=order,
+            limit=TICKETS_PER_PAGE,
+            offset=pager_values['offset'],
+        )
+
+        values = {
+            'page_name': 'ticket_list',
+            'tickets': tickets,
+            'pager': pager_values,
+            'ticket_count': ticket_count,
+            'sortby': sortby,
+            'sortings': sortings,
+            'filterby': filterby,
+            'filters': filters,
+            'search': search,
+            'search_in': search_in,
+            'search_in_options': {
+                'all': _('All'),
+                'subject': _('Subject'),
+                'ticket_no': _('Ticket #'),
+                'description': _('Description'),
+            },
+            'default_url': '/my/support/tickets',
+        }
+        return request.render('ft_helpdesk_portal.portal_ticket_list', values)
+
+    # =============================
+    # Create Ticket
+    # =============================
+
+    @http.route('/my/support/ticket/new', type='http', auth='user', website=True)
+    def portal_ticket_create(self, **kw):
+        categories = request.env['ft.helpdesk.category'].sudo().search([
+            ('portal_visible', '=', True),
+            ('parent_id', '=', False),
+        ], order='sequence')
+        ticket_types = request.env['ft.helpdesk.ticket.type'].sudo().search([
+            ('portal_visible', '=', True),
+        ], order='sequence')
+        teams = request.env['ft.helpdesk.team'].sudo().search([
+            ('portal_enabled', '=', True),
+        ], order='sequence')
+
+        values = {
+            'page_name': 'ticket_create',
+            'categories': categories,
+            'ticket_types': ticket_types,
+            'teams': teams,
+            'error': {},
+            'error_message': [],
+        }
+        return request.render('ft_helpdesk_portal.portal_ticket_create', values)
+
+    @http.route('/my/support/ticket/create', type='http', auth='user',
+                website=True, methods=['POST'], csrf=True)
+    def portal_ticket_submit(self, **post):
+        partner = request.env.user.partner_id
+        error = {}
+        error_message = []
+
+        # Validation
+        if not post.get('name', '').strip():
+            error['name'] = True
+            error_message.append(_('Subject is required.'))
+        if not post.get('description', '').strip():
+            error['description'] = True
+            error_message.append(_('Description is required.'))
+
+        if error:
+            categories = request.env['ft.helpdesk.category'].sudo().search([
+                ('portal_visible', '=', True), ('parent_id', '=', False),
+            ], order='sequence')
+            ticket_types = request.env['ft.helpdesk.ticket.type'].sudo().search([
+                ('portal_visible', '=', True),
+            ], order='sequence')
+            teams = request.env['ft.helpdesk.team'].sudo().search([
+                ('portal_enabled', '=', True),
+            ], order='sequence')
+            values = {
+                'page_name': 'ticket_create',
+                'categories': categories,
+                'ticket_types': ticket_types,
+                'teams': teams,
+                'error': error,
+                'error_message': error_message,
+                **post,
+            }
+            return request.render('ft_helpdesk_portal.portal_ticket_create', values)
+
+        # Build ticket values
+        vals = {
+            'name': post.get('name', '').strip(),
+            'description': post.get('description', '').strip(),
+            'customer_id': partner.id,
+            'channel': 'portal',
+        }
+
+        if post.get('category_id'):
+            vals['category_id'] = int(post['category_id'])
+        if post.get('subcategory_id'):
+            vals['subcategory_id'] = int(post['subcategory_id'])
+        if post.get('type_id'):
+            vals['type_id'] = int(post['type_id'])
+        if post.get('priority'):
+            vals['priority'] = post['priority']
+
+        # Get default team
+        if post.get('type_id'):
+            ttype = request.env['ft.helpdesk.ticket.type'].sudo().browse(
+                int(post['type_id']))
+            if ttype.default_team_id:
+                vals['team_id'] = ttype.default_team_id.id
+        if not vals.get('team_id'):
+            default_team = request.env['ir.config_parameter'].sudo().get_param(
+                'ft_helpdesk.default_team_id')
+            if default_team:
+                vals['team_id'] = int(default_team)
+
+        # Handle dynamic fields
+        dynamic_values = {}
+        for key, value in post.items():
+            if key.startswith('dynamic_'):
+                field_name = key[8:]  # Remove 'dynamic_' prefix
+                dynamic_values[field_name] = value
+        if dynamic_values:
+            vals['dynamic_values'] = dynamic_values
+
+        # Create ticket
+        ticket = request.env['ft.helpdesk.ticket'].sudo().with_context(
+            mail_create_nosubscribe=True,
+        ).create(vals)
+
+        # Handle attachments
+        files = request.httprequest.files.getlist('attachments')
+        for f in files:
+            if f.filename:
+                data = f.read()
+                if data:
+                    request.env['ir.attachment'].sudo().create({
+                        'name': f.filename,
+                        'datas': base64.b64encode(data),
+                        'res_model': 'ft.helpdesk.ticket',
+                        'res_id': ticket.id,
+                    })
+
+        # Post initial message
+        ticket.sudo().message_post(
+            body=vals.get('description', ''),
+            message_type='comment',
+            subtype_xmlid='ft_helpdesk_core.mt_ticket_new',
+            author_id=partner.id,
+        )
+
+        return request.redirect('/my/support/ticket/%s?just_created=1' % ticket.id)
+
+    # =============================
+    # Ticket Detail
+    # =============================
+
+    @http.route('/my/support/ticket/<int:ticket_id>', type='http',
+                auth='user', website=True)
+    def portal_ticket_detail(self, ticket_id, **kw):
+        try:
+            ticket = self._document_check_access(
+                'ft.helpdesk.ticket', ticket_id)
+        except (AccessError, MissingError):
+            return request.redirect('/my/support/tickets')
+
+        # Get only public messages (exclude internal notes)
+        internal_subtype = request.env.ref(
+            'ft_helpdesk_core.mt_ticket_internal_note', raise_if_not_found=False)
+        msg_domain = [
+            ('res_id', '=', ticket.id),
+            ('model', '=', 'ft.helpdesk.ticket'),
+            ('message_type', 'in', ('comment', 'email')),
+        ]
+        if internal_subtype:
+            msg_domain.append(('subtype_id', '!=', internal_subtype.id))
+
+        messages = request.env['mail.message'].sudo().search(
+            msg_domain, order='create_date asc')
+
+        # Get attachments
+        attachments = request.env['ir.attachment'].sudo().search([
+            ('res_model', '=', 'ft.helpdesk.ticket'),
+            ('res_id', '=', ticket.id),
+        ])
+
+        # Portal settings
+        allow_close = request.env['ir.config_parameter'].sudo().get_param(
+            'ft_helpdesk.portal_allow_close', 'False') == 'True'
+        allow_reopen = request.env['ir.config_parameter'].sudo().get_param(
+            'ft_helpdesk.portal_allow_reopen', 'False') == 'True'
+
+        values = {
+            'page_name': 'ticket_detail',
+            'ticket': ticket,
+            'messages': messages,
+            'attachments': attachments,
+            'allow_close': allow_close,
+            'allow_reopen': allow_reopen,
+            'just_created': kw.get('just_created'),
+        }
+        return request.render('ft_helpdesk_portal.portal_ticket_detail', values)
+
+    # =============================
+    # Ticket Reply
+    # =============================
+
+    @http.route('/my/support/ticket/<int:ticket_id>/reply', type='http',
+                auth='user', website=True, methods=['POST'], csrf=True)
+    def portal_ticket_reply(self, ticket_id, **post):
+        try:
+            ticket = self._document_check_access(
+                'ft.helpdesk.ticket', ticket_id)
+        except (AccessError, MissingError):
+            return request.redirect('/my/support/tickets')
+
+        body = post.get('body', '').strip()
+        if not body:
+            return request.redirect('/my/support/ticket/%s' % ticket_id)
+
+        partner = request.env.user.partner_id
+
+        # Post message
+        message = ticket.sudo().message_post(
+            body=body,
+            message_type='comment',
+            subtype_xmlid='ft_helpdesk_core.mt_ticket_public_reply',
+            author_id=partner.id,
+        )
+
+        # Handle attachments
+        files = request.httprequest.files.getlist('attachments')
+        attachment_ids = []
+        for f in files:
+            if f.filename:
+                data = f.read()
+                if data:
+                    att = request.env['ir.attachment'].sudo().create({
+                        'name': f.filename,
+                        'datas': base64.b64encode(data),
+                        'res_model': 'mail.message',
+                        'res_id': message.id,
+                    })
+                    attachment_ids.append(att.id)
+        if attachment_ids:
+            message.sudo().write({
+                'attachment_ids': [(4, aid) for aid in attachment_ids],
+            })
+
+        return request.redirect('/my/support/ticket/%s' % ticket_id)
+
+    # =============================
+    # Ticket Close / Reopen (Portal)
+    # =============================
+
+    @http.route('/my/support/ticket/<int:ticket_id>/close', type='http',
+                auth='user', website=True, methods=['POST'], csrf=True)
+    def portal_ticket_close(self, ticket_id, **post):
+        allow_close = request.env['ir.config_parameter'].sudo().get_param(
+            'ft_helpdesk.portal_allow_close', 'False') == 'True'
+        if not allow_close:
+            return request.redirect('/my/support/ticket/%s' % ticket_id)
+        try:
+            ticket = self._document_check_access(
+                'ft.helpdesk.ticket', ticket_id)
+        except (AccessError, MissingError):
+            return request.redirect('/my/support/tickets')
+
+        if ticket.state not in ('closed', 'cancelled'):
+            ticket.sudo().write({'state': 'closed'})
+            ticket.sudo().message_post(
+                body=_('Ticket closed by customer via portal.'),
+                message_type='notification',
+                subtype_xmlid='ft_helpdesk_core.mt_ticket_state_change',
+            )
+        return request.redirect('/my/support/ticket/%s' % ticket_id)
+
+    @http.route('/my/support/ticket/<int:ticket_id>/reopen', type='http',
+                auth='user', website=True, methods=['POST'], csrf=True)
+    def portal_ticket_reopen(self, ticket_id, **post):
+        allow_reopen = request.env['ir.config_parameter'].sudo().get_param(
+            'ft_helpdesk.portal_allow_reopen', 'False') == 'True'
+        if not allow_reopen:
+            return request.redirect('/my/support/ticket/%s' % ticket_id)
+        try:
+            ticket = self._document_check_access(
+                'ft.helpdesk.ticket', ticket_id)
+        except (AccessError, MissingError):
+            return request.redirect('/my/support/tickets')
+
+        if ticket.state in ('resolved', 'closed'):
+            ticket.sudo().action_reopen()
+            ticket.sudo().message_post(
+                body=_('Ticket reopened by customer via portal.'),
+                message_type='notification',
+                subtype_xmlid='ft_helpdesk_core.mt_ticket_state_change',
+            )
+        return request.redirect('/my/support/ticket/%s' % ticket_id)
+
+    # =============================
+    # AJAX: Get subcategories
+    # =============================
+
+    @http.route('/my/support/subcategories', type='json', auth='user', website=True)
+    def get_subcategories(self, category_id, **kw):
+        subcategories = request.env['ft.helpdesk.subcategory'].sudo().search([
+            ('category_id', '=', int(category_id)),
+            ('portal_visible', '=', True),
+        ], order='sequence')
+        return [{'id': s.id, 'name': s.name} for s in subcategories]
+
+    # =============================
+    # AJAX: Get dynamic fields for type
+    # =============================
+
+    @http.route('/my/support/dynamic_fields', type='json', auth='user', website=True)
+    def get_dynamic_fields(self, type_id, **kw):
+        ticket_type = request.env['ft.helpdesk.ticket.type'].sudo().browse(int(type_id))
+        if not ticket_type.fieldset_id:
+            return []
+        fields_data = []
+        for field in ticket_type.fieldset_id.field_ids:
+            if not field.portal_visible:
+                continue
+            field_info = {
+                'name': field.technical_name,
+                'label': field.name,
+                'type': field.field_type,
+                'required': field.required,
+                'placeholder': field.placeholder or '',
+                'help_text': field.help_text or '',
+            }
+            if field.field_type == 'selection' and field.selection_options:
+                field_info['options'] = [
+                    opt.strip() for opt in field.selection_options.split('\n')
+                    if opt.strip()
+                ]
+            fields_data.append(field_info)
+        return fields_data
