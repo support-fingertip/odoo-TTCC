@@ -44,10 +44,19 @@
               groups="group_ft_helpdesk_admin"
               sequence="90"/>
 
+    <!-- Settings Action -->
+    <record id="action_ft_helpdesk_config_settings" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'ft_helpdesk_core'}</field>
+    </record>
+
     <menuitem id="menu_ft_helpdesk_config_settings"
               name="Settings"
               parent="menu_ft_helpdesk_configuration"
-              action="base.action_general_configuration"
+              action="action_ft_helpdesk_config_settings"
               sequence="0"/>
 
     <menuitem id="menu_ft_helpdesk_config_teams"
