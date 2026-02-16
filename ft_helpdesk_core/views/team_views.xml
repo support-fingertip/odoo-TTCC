@@ -27,7 +27,7 @@
                     <div class="oe_button_box" name="button_box">
                         <button type="action" class="oe_stat_button" icon="fa-ticket"
                                 name="%(action_ticket_list)d"
-                                context="{'search_default_team_id': active_id}">
+                                context="{'search_default_team_id': id}">
                             <field name="ticket_count" string="Tickets" widget="statinfo"/>
                         </button>
                     </div>
@@ -85,14 +85,14 @@
                                     <div class="col-6">
                                         <button class="btn btn-primary" type="action"
                                                 name="%(action_ticket_list)d"
-                                                context="{'search_default_team_id': active_id, 'search_default_active_tickets': 1}">
+                                                context="{'search_default_team_id': id, 'search_default_active_tickets': 1}">
                                             <field name="open_ticket_count"/> Open
                                         </button>
                                     </div>
                                     <div class="col-6">
                                         <button class="btn btn-secondary" type="action"
                                                 name="%(action_ticket_list)d"
-                                                context="{'search_default_team_id': active_id}">
+                                                context="{'search_default_team_id': id}">
                                             <field name="ticket_count"/> Total
                                         </button>
                                     </div>
