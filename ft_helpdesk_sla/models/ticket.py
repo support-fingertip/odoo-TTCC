@@ -26,6 +26,14 @@ class HelpdeskTicketSLA(models.Model):
         compute='_compute_sla_fields', store=False,
     )
 
+    @api.depends(
+        'sla_status_ids',
+        'sla_status_ids.first_response_deadline',
+        'sla_status_ids.resolution_deadline',
+        'sla_status_ids.first_response_breached',
+        'sla_status_ids.resolution_breached',
+        'sla_status_ids.sla_state',
+    )
     def _compute_sla_fields(self):
         for ticket in self:
             status = ticket.sla_status_ids[:1]
