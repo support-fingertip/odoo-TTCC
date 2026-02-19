@@ -99,6 +99,19 @@
                                                     <option value="3">Urgent</option>
                                                 </select>
                                             </div>
+                                            <div class="col-md-6" t-if="projects">
+                                                <label for="project_id" class="form-label fw-medium">Project</label>
+                                                <select name="project_id" id="project_id"
+                                                        class="form-select">
+                                                    <option value="">-- Select Project --</option>
+                                                    <t t-foreach="projects" t-as="proj">
+                                                        <option t-att-value="proj.id"
+                                                                t-att-selected="'selected' if project_id and str(proj.id) == str(project_id) else None">
+                                                            <t t-out="proj.name"/>
+                                                        </option>
+                                                    </t>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
 

@@ -157,12 +157,16 @@ class HelpdeskPortal(CustomerPortal):
         teams = request.env['ft.helpdesk.team'].sudo().search([
             ('portal_enabled', '=', True),
         ], order='sequence')
+        projects = request.env['project.project'].sudo().search([
+            ('user_id', '=', request.env.uid),
+        ], order='name')
 
         values = {
             'page_name': 'ticket_create',
             'categories': categories,
             'ticket_types': ticket_types,
             'teams': teams,
+            'projects': projects,
             'error': {},
             'error_message': [],
         }
@@ -193,11 +197,15 @@ class HelpdeskPortal(CustomerPortal):
             teams = request.env['ft.helpdesk.team'].sudo().search([
                 ('portal_enabled', '=', True),
             ], order='sequence')
+            projects = request.env['project.project'].sudo().search([
+                ('user_id', '=', request.env.uid),
+            ], order='name')
             values = {
                 'page_name': 'ticket_create',
                 'categories': categories,
                 'ticket_types': ticket_types,
                 'teams': teams,
+                'projects': projects,
                 'error': error,
                 'error_message': error_message,
                 **post,
@@ -220,6 +228,8 @@ class HelpdeskPortal(CustomerPortal):
             vals['type_id'] = int(post['type_id'])
         if post.get('priority'):
             vals['priority'] = post['priority']
+        if post.get('project_id'):
+            vals['project_id'] = int(post['project_id'])
 
         # Get default team
         if post.get('type_id'):
