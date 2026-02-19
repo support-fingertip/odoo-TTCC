@@ -106,7 +106,7 @@
                                                     <option value="">-- Select Project --</option>
                                                     <t t-foreach="projects" t-as="proj">
                                                         <option t-att-value="proj.id"
-                                                                t-att-selected="str(proj.id) == str(project_id) if project_id else None">
+                                                                t-att-selected="'selected' if project_id and str(proj.id) == str(project_id) else None">
                                                             <t t-out="proj.name"/>
                                                         </option>
                                                     </t>
