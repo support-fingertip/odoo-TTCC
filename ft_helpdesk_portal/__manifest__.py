@@ -20,6 +20,7 @@
     'depends': [
         'ft_helpdesk_core',
         'portal',
+        'project',
         'web',
     ],
     'data': [
