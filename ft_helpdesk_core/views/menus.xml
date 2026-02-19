@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- App root menu -->
+    <menuitem id="menu_ft_helpdesk_root"
+              name="Helpdesk"
+              sequence="90"
+              web_icon="ft_helpdesk_core,static/description/icon.png"/>
+
+    <!-- Tickets section -->
+    <menuitem id="menu_ft_helpdesk_tickets"
+              name="Tickets"
+              parent="menu_ft_helpdesk_root"
+              sequence="10"/>
+
+    <menuitem id="menu_ft_helpdesk_ticket_list"
+              name="All Tickets"
+              parent="menu_ft_helpdesk_tickets"
+              action="action_ft_helpdesk_ticket"
+              sequence="10"/>
+
+    <menuitem id="menu_ft_helpdesk_ticket_my"
+              name="My Tickets"
+              parent="menu_ft_helpdesk_tickets"
+              action="action_ft_helpdesk_ticket_my"
+              sequence="20"/>
+
+</odoo>
