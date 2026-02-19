@@ -21,6 +21,7 @@
         'mail',
         'portal',
         'product',
+        'project',
         'web',
     ],
     'data': [

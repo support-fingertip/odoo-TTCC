@@ -104,6 +104,10 @@ class HelpdeskTicket(models.Model):
         'ft.helpdesk.subcategory', string='Subcategory',
         domain="[('category_id', '=', category_id)]",
     )
+    project_id = fields.Many2one(
+        'project.project', string='Project', tracking=True,
+        domain="[('user_id', '=', uid)]",
+    )
     product_id = fields.Many2one(
         'product.product', string='Related Product',
     )
