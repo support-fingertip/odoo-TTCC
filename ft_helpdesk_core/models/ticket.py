@@ -1,3 +1,5 @@
+import json
+
 from odoo import api, fields, models
 
 
@@ -87,16 +89,10 @@ class FtHelpdeskTicket(models.Model):
     def _compute_user_project_domain(self):
         """
         Returns a domain that restricts the project_id many2one to projects
-        where the current user is either the project manager or a member.
-        This is evaluated per-record but since it only depends on uid it is
-        effectively constant within a single user session.
+        where the current user is the project manager (user_id).
+        Evaluated per-record but effectively constant within a single user session.
         """
-        domain = [
-            '|',
-            ('user_id', '=', self.env.uid),
-            ('member_ids', 'in', [self.env.uid]),
-        ]
-        import json
+        domain = [('user_id', '=', self.env.uid)]
         serialised = json.dumps(domain)
         for record in self:
             record.user_project_domain = serialised

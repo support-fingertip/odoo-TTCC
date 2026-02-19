@@ -40,7 +40,7 @@
                         domain="[('assigned_user_id', '=', uid)]"/>
                 <filter name="my_projects"
                         string="My Projects"
-                        domain="['|', ('project_id.user_id', '=', uid), ('project_id.member_ids', 'in', [uid])]"/>
+                        domain="[('project_id.user_id', '=', uid)]"/>
                 <separator/>
                 <filter name="state_new"      string="New"       domain="[('state', '=', 'new')]"/>
                 <filter name="state_open"     string="In Progress" domain="[('state', '=', 'open')]"/>
@@ -86,12 +86,11 @@
                         <group string="General">
                             <!--
                                 Project field – domain restricts the dropdown to projects
-                                where the current user is the manager (user_id) OR a member
-                                (member_ids). The 'uid' keyword is available in all Odoo
-                                view domains and always resolves to the logged-in user's id.
+                                where the current user is the project manager (user_id).
+                                The 'uid' keyword resolves to the logged-in user's id.
                             -->
                             <field name="project_id"
-                                   domain="['|', ('user_id', '=', uid), ('member_ids', 'in', [uid])]"
+                                   domain="[('user_id', '=', uid)]"
                                    options="{'no_create': True, 'no_open': True}"
                                    placeholder="Select your project…"/>
                             <field name="customer_id"/>
