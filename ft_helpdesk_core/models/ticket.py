@@ -106,7 +106,6 @@ class HelpdeskTicket(models.Model):
     )
     project_id = fields.Many2one(
         'project.project', string='Project', tracking=True,
-        domain="[('user_id', '=', uid)]",
     )
     product_id = fields.Many2one(
         'product.product', string='Related Product',

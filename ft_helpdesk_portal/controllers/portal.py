@@ -157,10 +157,18 @@ class HelpdeskPortal(CustomerPortal):
         teams = request.env['ft.helpdesk.team'].sudo().search([
             ('portal_enabled', '=', True),
         ], order='sequence')
-        partner = request.env.user.partner_id
-        projects = request.env['project.project'].sudo().search([
-            ('partner_id', '=', partner.commercial_partner_id.id),
-        ], order='name')
+        user = request.env.user
+        partner = user.partner_id
+        # Internal users (admin/agents) see projects they manage (by user_id).
+        # Portal users (customers) see projects linked to their company (by partner_id).
+        if user.has_group('base.group_user'):
+            projects = request.env['project.project'].sudo().search([
+                ('user_id', '=', user.id),
+            ], order='name')
+        else:
+            projects = request.env['project.project'].sudo().search([
+                ('partner_id', '=', partner.commercial_partner_id.id),
+            ], order='name')
 
         values = {
             'page_name': 'ticket_create',
@@ -198,9 +206,15 @@ class HelpdeskPortal(CustomerPortal):
             teams = request.env['ft.helpdesk.team'].sudo().search([
                 ('portal_enabled', '=', True),
             ], order='sequence')
-            projects = request.env['project.project'].sudo().search([
-                ('partner_id', '=', partner.commercial_partner_id.id),
-            ], order='name')
+            user = request.env.user
+            if user.has_group('base.group_user'):
+                projects = request.env['project.project'].sudo().search([
+                    ('user_id', '=', user.id),
+                ], order='name')
+            else:
+                projects = request.env['project.project'].sudo().search([
+                    ('partner_id', '=', partner.commercial_partner_id.id),
+                ], order='name')
             values = {
                 'page_name': 'ticket_create',
                 'categories': categories,
@@ -232,8 +246,15 @@ class HelpdeskPortal(CustomerPortal):
         if post.get('project_id'):
             project = request.env['project.project'].sudo().browse(
                 int(post['project_id']))
-            if project.exists() and project.partner_id.commercial_partner_id == partner.commercial_partner_id:
-                vals['project_id'] = project.id
+            user = request.env.user
+            if user.has_group('base.group_user'):
+                # Internal user (admin/agent): allow projects they manage
+                if project.exists() and project.user_id.id == user.id:
+                    vals['project_id'] = project.id
+            else:
+                # Portal user (customer): allow projects linked to their company
+                if project.exists() and project.partner_id.commercial_partner_id == partner.commercial_partner_id:
+                    vals['project_id'] = project.id
 
         # Get default team
         if post.get('type_id'):
