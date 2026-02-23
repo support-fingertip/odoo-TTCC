@@ -157,8 +157,9 @@ class HelpdeskPortal(CustomerPortal):
         teams = request.env['ft.helpdesk.team'].sudo().search([
             ('portal_enabled', '=', True),
         ], order='sequence')
+        partner = request.env.user.partner_id
         projects = request.env['project.project'].sudo().search([
-            ('user_id', '=', request.env.uid),
+            ('partner_id', '=', partner.commercial_partner_id.id),
         ], order='name')
 
         values = {
@@ -198,7 +199,7 @@ class HelpdeskPortal(CustomerPortal):
                 ('portal_enabled', '=', True),
             ], order='sequence')
             projects = request.env['project.project'].sudo().search([
-                ('user_id', '=', request.env.uid),
+                ('partner_id', '=', partner.commercial_partner_id.id),
             ], order='name')
             values = {
                 'page_name': 'ticket_create',
@@ -229,7 +230,10 @@ class HelpdeskPortal(CustomerPortal):
         if post.get('priority'):
             vals['priority'] = post['priority']
         if post.get('project_id'):
-            vals['project_id'] = int(post['project_id'])
+            project = request.env['project.project'].sudo().browse(
+                int(post['project_id']))
+            if project.exists() and project.partner_id.commercial_partner_id == partner.commercial_partner_id:
+                vals['project_id'] = project.id
 
         # Get default team
         if post.get('type_id'):
