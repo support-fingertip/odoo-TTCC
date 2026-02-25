@@ -237,7 +237,6 @@
                         <page string="Conversation" name="conversation">
                             <field name="description" placeholder="Describe the issue..."
                                    invisible="state != 'new' and not description"/>
-                            <field name="message_ids" widget="mail_thread"/>
                         </page>
                         <page string="Details" name="details">
                             <group>
