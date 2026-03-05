@@ -342,6 +342,12 @@ class HelpdeskPortal(CustomerPortal):
             ('res_id', '=', ticket.id),
         ])
 
+        # Fetch project milestones linked to the ticket's project
+        milestones = request.env['project.custom.milestone'].sudo().search(
+            [('project_id', '=', ticket.project_id.id)],
+            order='due_date asc, id asc',
+        ) if ticket.project_id else request.env['project.custom.milestone']
+
         # Portal settings
         allow_close = request.env['ir.config_parameter'].sudo().get_param(
             'ft_helpdesk.portal_allow_close', 'False') == 'True'
@@ -353,6 +359,7 @@ class HelpdeskPortal(CustomerPortal):
             'ticket': ticket,
             'messages': messages,
             'attachments': attachments,
+            'milestones': milestones,
             'allow_close': allow_close,
             'allow_reopen': allow_reopen,
             'just_created': kw.get('just_created'),

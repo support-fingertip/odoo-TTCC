@@ -295,6 +295,68 @@
                                 </div>
                             </t>
 
+                            <!-- Milestones Card -->
+                            <t t-if="milestones">
+                                <div class="card border-0 shadow-sm mb-4">
+                                    <div class="card-header bg-white border-bottom py-3">
+                                        <h6 class="mb-0 fw-semibold">
+                                            <i class="fa fa-flag-checkered me-1"/>
+                                            Milestones (<t t-out="len(milestones)"/>)
+                                        </h6>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <table class="table table-hover mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th class="small px-3">Milestone</th>
+                                                    <th class="small px-3">Amount</th>
+                                                    <th class="small px-3">Paid</th>
+                                                    <th class="small px-3">Due Date</th>
+                                                    <th class="small px-3">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <t t-foreach="milestones" t-as="m">
+                                                    <tr>
+                                                        <td class="small px-3">
+                                                            <t t-if="m.milestone_id">
+                                                                <span class="text-muted me-1"><t t-esc="m.milestone_id"/></span>
+                                                            </t>
+                                                            <t t-esc="m.name"/>
+                                                        </td>
+                                                        <td class="small px-3"><t t-esc="'%.2f' % m.amount"/></td>
+                                                        <td class="small px-3"><t t-esc="'%.2f' % m.paid_amount"/></td>
+                                                        <td class="small px-3">
+                                                            <t t-if="m.due_date">
+                                                                <t t-esc="m.due_date" t-options='{"widget": "date"}'/>
+                                                            </t>
+                                                            <t t-else="">-</t>
+                                                        </td>
+                                                        <td class="small px-3">
+                                                            <t t-if="m.status == 'paid'">
+                                                                <span class="badge text-bg-success">Paid</span>
+                                                            </t>
+                                                            <t t-elif="m.status == 'partially_paid'">
+                                                                <span class="badge text-bg-info">Partially Paid</span>
+                                                            </t>
+                                                            <t t-elif="m.status == 'invoice_raised'">
+                                                                <span class="badge text-bg-warning">Invoice Raised</span>
+                                                            </t>
+                                                            <t t-elif="m.status == 'completed'">
+                                                                <span class="badge text-bg-primary">Completed</span>
+                                                            </t>
+                                                            <t t-else="">
+                                                                <span class="badge text-bg-secondary">Not Started</span>
+                                                            </t>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </t>
+
                             <!-- Back to List -->
                             <a href="/my/support/tickets" class="btn btn-outline-secondary w-100">
                                 <i class="fa fa-arrow-left me-1"/> Back to My Tickets
