@@ -103,11 +103,21 @@
                         </group>
                     </group>
 
-                    <!-- Description -->
+                    <!-- Description / Milestones -->
                     <notebook>
                         <page string="Description" name="description">
                             <field name="description" widget="html"
                                    placeholder="Describe the issue…"/>
+                        </page>
+                        <page string="Milestones" name="milestones">
+                            <field name="milestone_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="deadline"/>
+                                    <field name="is_reached"/>
+                                    <field name="description"/>
+                                </list>
+                            </field>
                         </page>
                     </notebook>
                 </sheet>
