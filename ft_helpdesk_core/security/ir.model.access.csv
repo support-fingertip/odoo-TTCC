@@ -1,3 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_ft_helpdesk_ticket_user,ft.helpdesk.ticket user,model_ft_helpdesk_ticket,base.group_user,1,1,1,0
 access_ft_helpdesk_ticket_manager,ft.helpdesk.ticket manager,model_ft_helpdesk_ticket,base.group_system,1,1,1,1
+access_ft_helpdesk_ticket_portal,ft.helpdesk.ticket portal,model_ft_helpdesk_ticket,base.group_portal,1,0,0,0
+access_ft_helpdesk_milestone_user,ft.helpdesk.milestone user,model_ft_helpdesk_milestone,base.group_user,1,1,1,0
+access_ft_helpdesk_milestone_manager,ft.helpdesk.milestone manager,model_ft_helpdesk_milestone,base.group_system,1,1,1,1
+access_ft_helpdesk_milestone_portal,ft.helpdesk.milestone portal,model_ft_helpdesk_milestone,base.group_portal,1,0,0,0

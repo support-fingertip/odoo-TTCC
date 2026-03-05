@@ -37,6 +37,13 @@ class FtHelpdeskTicket(models.Model):
         store=False,
     )
 
+    # ── Milestones ─────────────────────────────────────────────────────────────
+    milestone_ids = fields.One2many(
+        comodel_name='ft.helpdesk.milestone',
+        inverse_name='ticket_id',
+        string='Milestones',
+    )
+
     # ── Basic fields ───────────────────────────────────────────────────────────
     customer_id = fields.Many2one(
         comodel_name='res.partner',
