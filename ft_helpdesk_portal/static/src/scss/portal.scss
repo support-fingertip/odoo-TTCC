@@ -544,3 +544,28 @@
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* ── Hide website navbar items on support portal pages ── */
+/* Keep only the customer login dropdown */
+#wrapwrap:has(.ft-support-portal) {
+    header#top {
+        /* Hide main menu links (Home, Courses, Contact us) */
+        #top_menu {
+            display: none !important;
+        }
+        /* Hide logo/brand */
+        .navbar-brand {
+            display: none !important;
+        }
+        /* Hide search icon */
+        a[data-bs-target="#o_search_modal"] {
+            display: none !important;
+        }
+        /* Hide phone number and CTA button in header */
+        .s_text_block,
+        .btn_cta,
+        .oe_structure_solo {
+            display: none !important;
+        }
+    }
+}

@@ -6,7 +6,7 @@
     <template id="portal_support_landing" name="Support Landing Page">
         <t t-call="portal.portal_layout">
             <t t-set="additional_title">Support</t>
-            <div class="o_portal_wrap">
+            <div class="o_portal_wrap ft-support-portal">
                 <div class="container py-4">
                     <!-- Hero Banner (above tabs) -->
                     <div class="ft-landing-hero text-center text-white rounded-3 p-5 mb-4">
@@ -68,7 +68,7 @@
     <template id="portal_support_home" name="Support Home">
         <t t-call="portal.portal_layout">
             <t t-set="additional_title">Support</t>
-            <div class="o_portal_wrap">
+            <div class="o_portal_wrap ft-support-portal">
                 <div class="container py-4">
                     <!-- Navigation Tabs -->
                     <ul class="nav nav-tabs ft-support-tabs mb-4" role="tablist">

@@ -6,7 +6,7 @@
     <template id="portal_ticket_detail" name="Ticket Detail">
         <t t-call="portal.portal_layout">
             <t t-set="additional_title" t-value="ticket.ticket_no"/>
-            <div class="o_portal_wrap">
+            <div class="o_portal_wrap ft-support-portal">
                 <div class="container py-4">
                     <!-- Success banner for just-created tickets -->
                     <t t-if="just_created">
