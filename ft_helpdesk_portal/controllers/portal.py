@@ -49,23 +49,30 @@ class HelpdeskPortal(CustomerPortal):
             [('project_id', 'in', project_ids)]
         ) if project_ids else 0
 
+        kb_count = request.env['ft.helpdesk.kb.article'].sudo().search_count(
+            [('portal_published', '=', True)]
+        )
+
         return {
             'page_name': 'support_home',
             'active_tab': active_tab,
             'ticket_count': Ticket.search_count(ticket_domain),
             'milestone_count': milestone_count,
             'release_count': release_count,
+            'kb_count': kb_count,
             'project_ids': project_ids,
             'ticket_domain': ticket_domain,
         }
 
     # =============================
-    # Support Home → redirect to tickets
+    # Support Home — landing page
     # =============================
 
     @http.route('/my/support', type='http', auth='user', website=True)
     def portal_support_home(self, **kw):
-        return request.redirect('/my/support/tickets')
+        values = self._get_support_tab_values()
+        values['active_tab'] = ''
+        return request.render('ft_helpdesk_portal.portal_support_landing', values)
 
     # =============================
     # Milestones Tab

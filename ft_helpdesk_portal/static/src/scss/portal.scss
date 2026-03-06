@@ -254,14 +254,14 @@
         }
 
         &:hover {
-            color: #495057;
+            color: #6f42c1;
             border-color: #adb5bd;
         }
 
         &.active {
-            color: #0d6efd;
+            color: #6f42c1;
             background: none;
-            border-color: #0d6efd;
+            border-color: #6f42c1;
             font-weight: 700;
         }
 
@@ -269,7 +269,83 @@
             font-size: 0.75rem;
             padding: 0.3em 0.55em;
             vertical-align: middle;
+            background-color: #6f42c1 !important;
+            color: #fff !important;
         }
+    }
+}
+
+/* ===================================
+   Support Landing Page
+   =================================== */
+.ft-landing-hero {
+    background: linear-gradient(135deg, #4a1a8a 0%, #6f42c1 50%, #8b5cf6 100%);
+    box-shadow: 0 4px 20px rgba(79, 26, 138, 0.25);
+}
+
+.ft-landing-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+}
+
+.ft-landing-card {
+    border-radius: 12px !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+    }
+}
+
+/* ===================================
+   Shared Purple Theme Components
+   =================================== */
+.ft-page-header {
+    background: linear-gradient(135deg, #2d1569 0%, #6f42c1 60%, #8b5cf6 100%);
+    box-shadow: 0 4px 15px rgba(79, 26, 138, 0.2);
+}
+
+.ft-step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6f42c1, #8b5cf6);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.ft-btn-purple {
+    background: linear-gradient(135deg, #6f42c1, #8b5cf6);
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    transition: box-shadow 0.2s, transform 0.2s;
+
+    &:hover {
+        background: linear-gradient(135deg, #5a32a3, #7c4ddb);
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(111, 66, 193, 0.4);
+        transform: translateY(-1px);
+    }
+}
+
+.ft-ticket-form {
+    border-radius: 12px !important;
+
+    .form-select:focus,
+    .form-control:focus {
+        border-color: #8b5cf6;
+        box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.15);
     }
 }
 

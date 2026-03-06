@@ -19,6 +19,7 @@
     'license': 'LGPL-3',
     'depends': [
         'ft_helpdesk_core',
+        'ft_helpdesk_knowledge',
         'project_custom_milestone',
         'portal',
         'project',

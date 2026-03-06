@@ -1,6 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ============================= -->
+    <!-- SUPPORT LANDING PAGE          -->
+    <!-- ============================= -->
+    <template id="portal_support_landing" name="Support Landing Page">
+        <t t-call="portal.portal_layout">
+            <t t-set="additional_title">Support</t>
+            <div class="o_portal_wrap">
+                <div class="container py-4">
+                    <!-- Hero Banner (above tabs) -->
+                    <div class="ft-landing-hero text-center text-white rounded-3 p-5 mb-4">
+                        <div class="py-3">
+                            <i class="fa fa-headphones fa-3x mb-3" style="opacity: 0.9;"/>
+                            <h2 class="fw-bold mb-2">Welcome to Your Support Portal</h2>
+                            <p class="mb-4" style="opacity: 0.85; font-size: 1.05rem;">
+                                Track your tickets, monitor project milestones, and stay updated on releases — all in one place.
+                            </p>
+                            <a href="/my/support/ticket/new" class="btn btn-light btn-lg px-4 fw-semibold">
+                                <i class="fa fa-plus me-2"/>Create New Ticket
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Tabs -->
+                    <ul class="nav nav-tabs ft-support-tabs mb-4" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" href="/my/support/tickets">
+                                <i class="fa fa-ticket me-1"/> Tickets
+                                <t t-if="ticket_count">
+                                    <span class="badge text-bg-primary ms-1"><t t-out="ticket_count"/></span>
+                                </t>
+                            </a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" href="/my/support/milestones">
+                                <i class="fa fa-flag-checkered me-1"/> Milestones
+                                <t t-if="milestone_count">
+                                    <span class="badge text-bg-info ms-1"><t t-out="milestone_count"/></span>
+                                </t>
+                            </a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" href="/my/support/releases">
+                                <i class="fa fa-rocket me-1"/> Releases
+                                <t t-if="release_count">
+                                    <span class="badge text-bg-success ms-1"><t t-out="release_count"/></span>
+                                </t>
+                            </a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" href="/my/support/kb">
+                                <i class="fa fa-book me-1"/> Knowledge Base
+                                <t t-if="kb_count">
+                                    <span class="badge text-bg-warning ms-1"><t t-out="kb_count"/></span>
+                                </t>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ============================= -->
     <!-- SUPPORT HOME — TAB LAYOUT     -->
     <!-- ============================= -->
     <template id="portal_support_home" name="Support Home">
@@ -37,6 +99,15 @@
                                 </t>
                             </a>
                         </li>
+                        <li class="nav-item" role="presentation">
+                            <a t-attf-class="nav-link #{active_tab == 'kb' and 'active' or ''}"
+                               href="/my/support/kb">
+                                <i class="fa fa-book me-1"/> Knowledge Base
+                                <t t-if="kb_count">
+                                    <span class="badge text-bg-warning ms-1"><t t-out="kb_count"/></span>
+                                </t>
+                            </a>
+                        </li>
                     </ul>
 
                     <!-- Tab Content (injected by sub-templates) -->
@@ -53,6 +124,12 @@
     <!-- ============================= -->
     <template id="portal_support_milestones" name="Support Milestones">
         <t t-call="ft_helpdesk_portal.portal_support_home">
+            <!-- Page Header -->
+            <div class="ft-page-header text-center text-white rounded-3 p-4 mb-4">
+                <i class="fa fa-flag-checkered fa-2x mb-2" style="opacity: 0.85;"/>
+                <h2 class="fw-bold mb-1">Milestones</h2>
+                <p class="mb-0" style="opacity: 0.8;">Track your project progress and deliverables</p>
+            </div>
             <t t-if="milestones">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-0">
@@ -110,6 +187,12 @@
     <!-- ============================= -->
     <template id="portal_support_releases" name="Support Releases">
         <t t-call="ft_helpdesk_portal.portal_support_home">
+            <!-- Page Header -->
+            <div class="ft-page-header text-center text-white rounded-3 p-4 mb-4">
+                <i class="fa fa-rocket fa-2x mb-2" style="opacity: 0.85;"/>
+                <h2 class="fw-bold mb-1">Releases</h2>
+                <p class="mb-0" style="opacity: 0.8;">Stay updated on deployments and versions</p>
+            </div>
             <t t-if="releases">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-0">

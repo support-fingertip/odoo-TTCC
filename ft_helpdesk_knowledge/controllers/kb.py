@@ -33,10 +33,22 @@ class KnowledgeBaseController(http.Controller):
 
         values = {
             'page_name': 'kb_index',
+            'active_tab': 'kb',
             'categories': categories,
             'articles': articles,
             'search': search,
         }
+
+        # Add tab counts if user is authenticated
+        if not request.env.user._is_public():
+            try:
+                from odoo.addons.ft_helpdesk_portal.controllers.portal import FtHelpdeskPortal
+                portal = FtHelpdeskPortal()
+                tab_values = portal._get_support_tab_values(active_tab='kb')
+                values.update(tab_values)
+            except Exception:
+                pass
+
         return request.render('ft_helpdesk_knowledge.kb_portal_index', values)
 
     @http.route('/my/support/kb/<string:slug>', type='http',
