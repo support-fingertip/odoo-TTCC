@@ -65,6 +65,16 @@ class HelpdeskPortal(CustomerPortal):
         }
 
     # =============================
+    # Redirect portal users to /my/support
+    # =============================
+
+    @http.route(['/my', '/my/home'], type='http', auth='user', website=True)
+    def portal_my_home(self, **kw):
+        if request.env.user.has_group('base.group_portal'):
+            return request.redirect('/my/support')
+        return super().portal_my_home(**kw)
+
+    # =============================
     # Support Home — landing page
     # =============================
 
@@ -79,17 +89,49 @@ class HelpdeskPortal(CustomerPortal):
     # =============================
 
     @http.route('/my/support/milestones', type='http', auth='user', website=True)
-    def portal_support_milestones(self, **kw):
+    def portal_support_milestones(self, sortby='date', filterby='all', search='', **kw):
         values = self._get_support_tab_values('milestones')
         project_ids = values.pop('project_ids')
         values.pop('ticket_domain')
 
-        milestones = request.env['project.custom.milestone'].sudo().search(
-            [('project_id', 'in', project_ids)],
-            order='due_date asc, id asc',
-        ) if project_ids else request.env['project.custom.milestone']
+        Milestone = request.env['project.custom.milestone'].sudo()
+        domain = [('project_id', 'in', project_ids)] if project_ids else [('id', '=', False)]
 
-        values['milestones'] = milestones
+        # Sorting
+        sortings = {
+            'date': {'label': _('Due Date'), 'order': 'due_date asc, id asc'},
+            'name': {'label': _('Name'), 'order': 'name asc'},
+            'status': {'label': _('Status'), 'order': 'status asc, due_date asc'},
+            'amount': {'label': _('Amount'), 'order': 'amount desc, id asc'},
+        }
+        order = sortings.get(sortby, sortings['date'])['order']
+
+        # Filtering
+        filters = {
+            'all': {'label': _('All'), 'domain': []},
+            'not_started': {'label': _('Not Started'), 'domain': [('status', '=', 'not_started')]},
+            'completed': {'label': _('Completed'), 'domain': [('status', '=', 'completed')]},
+            'invoice_raised': {'label': _('Invoice Raised'), 'domain': [('status', '=', 'invoice_raised')]},
+            'partially_paid': {'label': _('Partially Paid'), 'domain': [('status', '=', 'partially_paid')]},
+            'paid': {'label': _('Paid'), 'domain': [('status', '=', 'paid')]},
+        }
+        if filterby in filters:
+            domain = AND([domain, filters[filterby]['domain']])
+
+        # Search
+        if search:
+            domain = AND([domain, ['|', ('name', 'ilike', search), ('milestone_id', 'ilike', search)]])
+
+        milestones = Milestone.search(domain, order=order)
+
+        values.update({
+            'milestones': milestones,
+            'sortby': sortby,
+            'sortings': sortings,
+            'filterby': filterby,
+            'filters': filters,
+            'search': search,
+        })
         return request.render('ft_helpdesk_portal.portal_support_milestones', values)
 
     # =============================
@@ -97,17 +139,48 @@ class HelpdeskPortal(CustomerPortal):
     # =============================
 
     @http.route('/my/support/releases', type='http', auth='user', website=True)
-    def portal_support_releases(self, **kw):
+    def portal_support_releases(self, sortby='date', filterby='all', search='', **kw):
         values = self._get_support_tab_values('releases')
         project_ids = values.pop('project_ids')
         values.pop('ticket_domain')
 
-        releases = request.env['ft.helpdesk.release'].sudo().search(
-            [('project_id', 'in', project_ids)],
-            order='release_date desc, id desc',
-        ) if project_ids else request.env['ft.helpdesk.release']
+        Release = request.env['ft.helpdesk.release'].sudo()
+        domain = [('project_id', 'in', project_ids)] if project_ids else [('id', '=', False)]
 
-        values['releases'] = releases
+        # Sorting
+        sortings = {
+            'date': {'label': _('Newest'), 'order': 'release_date desc, id desc'},
+            'date_asc': {'label': _('Oldest'), 'order': 'release_date asc, id asc'},
+            'name': {'label': _('Name'), 'order': 'name asc'},
+            'status': {'label': _('Status'), 'order': 'status asc, release_date desc'},
+        }
+        order = sortings.get(sortby, sortings['date'])['order']
+
+        # Filtering
+        filters = {
+            'all': {'label': _('All'), 'domain': []},
+            'planned': {'label': _('Planned'), 'domain': [('status', '=', 'planned')]},
+            'in_progress': {'label': _('In Progress'), 'domain': [('status', '=', 'in_progress')]},
+            'released': {'label': _('Released'), 'domain': [('status', '=', 'released')]},
+            'cancelled': {'label': _('Cancelled'), 'domain': [('status', '=', 'cancelled')]},
+        }
+        if filterby in filters:
+            domain = AND([domain, filters[filterby]['domain']])
+
+        # Search
+        if search:
+            domain = AND([domain, ['|', ('name', 'ilike', search), ('version', 'ilike', search)]])
+
+        releases = Release.search(domain, order=order)
+
+        values.update({
+            'releases': releases,
+            'sortby': sortby,
+            'sortings': sortings,
+            'filterby': filterby,
+            'filters': filters,
+            'search': search,
+        })
         return request.render('ft_helpdesk_portal.portal_support_releases', values)
 
     # =============================

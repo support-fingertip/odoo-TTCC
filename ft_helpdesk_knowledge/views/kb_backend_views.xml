@@ -104,6 +104,7 @@
                         <page string="Tags" name="tags">
                             <field name="tag_ids" widget="many2many_tags"
                                    options="{'color_field': 'color'}"/>
+                            <field name="customer_ids" widget="many2many_tags"/>
                         </page>
                         <page string="Metrics" name="metrics">
                             <group>

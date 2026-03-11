@@ -56,6 +56,12 @@ class KBArticle(models.Model):
         string='Keywords',
         help='Comma-separated keywords for search matching.',
     )
+        # Customer-specific tagging
+        customer_ids = fields.Many2many(
+            'res.partner', 'ft_kb_article_customer_rel',
+            'article_id', 'partner_id', string='Customers',
+            help='Restrict article visibility to these customers. Leave empty for global.',
+        )
 
     @api.depends('helpful_yes', 'helpful_no')
     def _compute_helpful_score(self):

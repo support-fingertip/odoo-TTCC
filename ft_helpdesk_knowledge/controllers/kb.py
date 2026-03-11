@@ -21,15 +21,18 @@ class KnowledgeBaseController(http.Controller):
         ], order='sequence')
 
         articles = False
-        if search:
-            articles = Article.search([
-                ('portal_published', '=', True),
-                '|', '|', '|',
-                ('name', 'ilike', search),
-                ('summary', 'ilike', search),
-                ('keywords', 'ilike', search),
-                ('body_html', 'ilike', search),
-            ], limit=20, order='helpful_score desc, view_count desc')
+            partner = request.env.user.partner_id if not request.env.user._is_public() else False
+            kb_domain = [('portal_published', '=', True)]
+            if partner:
+                kb_domain += ['|', ('customer_ids', '=', False), ('customer_ids', 'in', [partner.id])]
+            if search:
+                kb_domain += ['|', '|', '|',
+                    ('name', 'ilike', search),
+                    ('summary', 'ilike', search),
+                    ('keywords', 'ilike', search),
+                    ('body_html', 'ilike', search),
+                ]
+            articles = Article.search(kb_domain, limit=20, order='helpful_score desc, view_count desc')
 
         values = {
             'page_name': 'kb_index',

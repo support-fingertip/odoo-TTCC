@@ -57,6 +57,8 @@
                             </a>
                         </li>
                     </ul>
+                    <!-- Empty tab content area for AJAX tab switching -->
+                    <div class="ft-tab-content"></div>
                 </div>
             </div>
         </t>
@@ -130,6 +132,50 @@
                 <h2 class="fw-bold mb-1">Milestones</h2>
                 <p class="mb-0" style="opacity: 0.8;">Track your project progress and deliverables</p>
             </div>
+
+            <!-- Filters & Search Bar -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body py-3">
+                    <div class="row g-3 align-items-center">
+                        <!-- Filter Chips -->
+                        <div class="col-lg-7">
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <span class="fw-medium text-dark">Filter:</span>
+                                <t t-foreach="filters" t-as="f">
+                                    <a t-attf-href="/my/support/milestones?filterby=#{f}&amp;sortby=#{sortby}&amp;search=#{search}"
+                                       t-attf-class="btn btn-sm #{filterby == f and 'ft-btn-purple' or 'btn-outline-secondary'} rounded-pill">
+                                        <t t-out="filters[f]['label']"/>
+                                    </a>
+                                </t>
+                            </div>
+                        </div>
+                        <!-- Search -->
+                        <div class="col-lg-5">
+                            <form method="GET" action="/my/support/milestones" class="input-group">
+                                <input type="hidden" name="filterby" t-att-value="filterby"/>
+                                <input type="hidden" name="sortby" t-att-value="sortby"/>
+                                <input type="text" name="search" class="form-control"
+                                       t-att-value="search"
+                                       placeholder="Search milestones..."/>
+                                <button class="btn btn-outline-secondary" style="border-color: #6f42c1; color: #6f42c1;" type="submit">
+                                    <i class="fa fa-search"/>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- Sort Options -->
+                    <div class="mt-2 d-flex gap-2 align-items-center">
+                        <span class="fw-medium text-dark">Sort by:</span>
+                        <t t-foreach="sortings" t-as="s">
+                            <a t-attf-href="/my/support/milestones?sortby=#{s}&amp;filterby=#{filterby}&amp;search=#{search}"
+                               t-attf-class="btn btn-sm #{sortby == s and 'btn-dark' or 'btn-outline-dark'} rounded-pill">
+                                <t t-out="sortings[s]['label']"/>
+                            </a>
+                        </t>
+                    </div>
+                </div>
+            </div>
+
             <t t-if="milestones">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-0">
@@ -193,6 +239,50 @@
                 <h2 class="fw-bold mb-1">Releases</h2>
                 <p class="mb-0" style="opacity: 0.8;">Stay updated on deployments and versions</p>
             </div>
+
+            <!-- Filters & Search Bar -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body py-3">
+                    <div class="row g-3 align-items-center">
+                        <!-- Filter Chips -->
+                        <div class="col-lg-7">
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <span class="fw-medium text-dark">Filter:</span>
+                                <t t-foreach="filters" t-as="f">
+                                    <a t-attf-href="/my/support/releases?filterby=#{f}&amp;sortby=#{sortby}&amp;search=#{search}"
+                                       t-attf-class="btn btn-sm #{filterby == f and 'ft-btn-purple' or 'btn-outline-secondary'} rounded-pill">
+                                        <t t-out="filters[f]['label']"/>
+                                    </a>
+                                </t>
+                            </div>
+                        </div>
+                        <!-- Search -->
+                        <div class="col-lg-5">
+                            <form method="GET" action="/my/support/releases" class="input-group">
+                                <input type="hidden" name="filterby" t-att-value="filterby"/>
+                                <input type="hidden" name="sortby" t-att-value="sortby"/>
+                                <input type="text" name="search" class="form-control"
+                                       t-att-value="search"
+                                       placeholder="Search releases..."/>
+                                <button class="btn btn-outline-secondary" style="border-color: #6f42c1; color: #6f42c1;" type="submit">
+                                    <i class="fa fa-search"/>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- Sort Options -->
+                    <div class="mt-2 d-flex gap-2 align-items-center">
+                        <span class="fw-medium text-dark">Sort by:</span>
+                        <t t-foreach="sortings" t-as="s">
+                            <a t-attf-href="/my/support/releases?sortby=#{s}&amp;filterby=#{filterby}&amp;search=#{search}"
+                               t-attf-class="btn btn-sm #{sortby == s and 'btn-dark' or 'btn-outline-dark'} rounded-pill">
+                                <t t-out="sortings[s]['label']"/>
+                            </a>
+                        </t>
+                    </div>
+                </div>
+            </div>
+
             <t t-if="releases">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-0">

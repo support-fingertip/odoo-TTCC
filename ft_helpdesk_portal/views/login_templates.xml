@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
+    <!-- ===================================== -->
+    <!-- Force login form visible (Odoo 18     -->
+    <!-- hides it behind OWL user_switch)      -->
+    <!-- ===================================== -->
+    <template id="ft_login_form_visible" name="FT Login Form Always Visible"
+              inherit_id="web.login" priority="99">
+        <!-- Remove the OWL user_switch component -->
+        <xpath expr="//owl-component[@name='web.user_switch']" position="replace"/>
+        <!-- Always show the login form (remove d-none toggle) -->
+        <xpath expr="//form[@role='form']" position="attributes">
+            <attribute name="t-attf-class">oe_login_form</attribute>
+        </xpath>
+    </template>
+
     <!-- ===================================== -->
     <!-- Custom Login Page (Salesforce-style)   -->
     <!-- Inherits web.login_layout AFTER the   -->
