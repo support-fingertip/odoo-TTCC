@@ -19,17 +19,23 @@
     'license': 'LGPL-3',
     'depends': [
         'ft_helpdesk_core',
+        'ft_helpdesk_knowledge',
+        'project_custom_milestone',
         'portal',
         'project',
         'web',
+        'website',
     ],
     'data': [
         'security/security.xml',
+        'security/ir.model.access.csv',
         'views/portal_templates.xml',
         'views/portal_ticket_create.xml',
         'views/portal_ticket_list.xml',
         'views/portal_ticket_detail.xml',
         'views/portal_menu.xml',
+        'views/login_templates.xml',
+        'views/release_views.xml',
     ],
     'assets': {
         'web.assets_frontend': [

@@ -26,7 +26,6 @@
         <field name="arch" type="xml">
             <graph string="Ticket Analysis" type="bar" sample="1">
                 <field name="state" type="row"/>
-                <field name="__count" type="measure"/>
             </graph>
         </field>
     </record>

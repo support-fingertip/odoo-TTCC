@@ -6,15 +6,17 @@
     <template id="portal_ticket_create" name="Create Ticket">
         <t t-call="portal.portal_layout">
             <t t-set="additional_title">New Ticket</t>
-            <div class="o_portal_wrap">
+            <div class="o_portal_wrap ft-support-portal">
                 <div class="container py-4">
+                    <!-- Page Header Banner -->
+                    <div class="ft-page-header text-center text-white rounded-3 p-4 mb-4">
+                        <i class="fa fa-pencil-square-o fa-2x mb-2" style="opacity: 0.85;"/>
+                        <h2 class="fw-bold mb-1">Submit a Support Request</h2>
+                        <p class="mb-0" style="opacity: 0.8;">Fill in the details below and we'll get back to you as soon as possible.</p>
+                    </div>
+
                     <div class="row justify-content-center">
                         <div class="col-lg-8">
-                            <!-- Header -->
-                            <div class="text-center mb-4">
-                                <h2 class="fw-bold">Submit a Support Request</h2>
-                                <p class="text-muted">Fill in the details below and we'll get back to you as soon as possible.</p>
-                            </div>
 
                             <!-- Error Messages -->
                             <t t-if="error_message">
@@ -45,14 +47,14 @@
                             <!-- Ticket Form -->
                             <form method="POST" action="/my/support/ticket/create"
                                   enctype="multipart/form-data"
-                                  class="card border-0 shadow-sm" id="ticket_create_form">
+                                  class="card border-0 shadow-sm ft-ticket-form" id="ticket_create_form">
                                 <input type="hidden" name="csrf_token"
                                        t-att-value="request.csrf_token()"/>
                                 <div class="card-body p-4">
                                     <!-- Step 1: Category & Type -->
                                     <div class="mb-4">
                                         <h5 class="fw-semibold border-bottom pb-2 mb-3">
-                                            <span class="badge bg-primary rounded-circle me-2">1</span>
+                                            <span class="ft-step-badge me-2">1</span>
                                             Categorize Your Request
                                         </h5>
                                         <div class="row g-3">
@@ -128,7 +130,7 @@
                                     <!-- Step 2: Details -->
                                     <div class="mb-4">
                                         <h5 class="fw-semibold border-bottom pb-2 mb-3">
-                                            <span class="badge bg-primary rounded-circle me-2">2</span>
+                                            <span class="ft-step-badge me-2">2</span>
                                             Describe Your Issue
                                         </h5>
                                         <div class="mb-3">
@@ -163,7 +165,7 @@
                                     <!-- Dynamic Fields Container (populated via JS) -->
                                     <div id="dynamic_fields_container" class="mb-4" style="display:none;">
                                         <h5 class="fw-semibold border-bottom pb-2 mb-3">
-                                            <span class="badge bg-primary rounded-circle me-2">3</span>
+                                            <span class="ft-step-badge me-2">3</span>
                                             Additional Information
                                         </h5>
                                         <div id="dynamic_fields_body" class="row g-3"></div>
@@ -187,10 +189,10 @@
                                 <!-- Submit -->
                                 <div class="card-footer bg-light border-0 p-4">
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <a href="/my/support" class="btn btn-outline-secondary">
+                                        <a href="/my/support/tickets" class="btn btn-outline-secondary">
                                             <i class="fa fa-arrow-left me-1"/> Back
                                         </a>
-                                        <button type="submit" class="btn btn-primary btn-lg px-5">
+                                        <button type="submit" class="btn btn-lg px-5 ft-btn-purple">
                                             <i class="fa fa-paper-plane me-1"/> Submit Ticket
                                         </button>
                                     </div>

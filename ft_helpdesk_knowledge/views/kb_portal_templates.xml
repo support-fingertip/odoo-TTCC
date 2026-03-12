@@ -4,31 +4,29 @@
     <!-- KB INDEX PAGE                 -->
     <!-- ============================= -->
     <template id="kb_portal_index" name="Knowledge Base Index">
-        <t t-call="portal.portal_layout">
-            <t t-set="additional_title">Knowledge Base</t>
-            <div class="o_portal_wrap">
-                <div class="container py-4">
-                    <!-- Header -->
-                    <div class="text-center mb-5">
-                        <h1 class="display-6 fw-bold text-primary mb-2">Knowledge Base</h1>
-                        <p class="text-muted fs-5 mb-4">Find answers, guides, and documentation</p>
+        <t t-call="ft_helpdesk_portal.portal_support_home">
+            <!-- Page Header -->
+            <div class="ft-page-header text-center text-white rounded-3 p-4 mb-4">
+                <i class="fa fa-book fa-2x mb-2" style="opacity: 0.85;"/>
+                <h2 class="fw-bold mb-1">Knowledge Base</h2>
+                <p class="mb-0" style="opacity: 0.8;">Find answers, guides, and documentation</p>
+            </div>
 
-                        <!-- Search Bar -->
-                        <div class="row justify-content-center">
-                            <div class="col-lg-6">
-                                <form method="GET" action="/my/support/kb">
-                                    <div class="input-group input-group-lg shadow-sm">
-                                        <input type="text" name="search" class="form-control"
-                                               t-att-value="search"
-                                               placeholder="Search articles..."/>
-                                        <button class="btn btn-primary px-4" type="submit">
-                                            <i class="fa fa-search"/>
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
+            <!-- Search Bar -->
+            <div class="row justify-content-center mb-4">
+                <div class="col-lg-6">
+                    <form method="GET" action="/my/support/kb">
+                        <div class="input-group input-group-lg shadow-sm">
+                            <input type="text" name="search" class="form-control"
+                                   t-att-value="search"
+                                   placeholder="Search articles..."/>
+                            <button class="btn px-4 ft-btn-purple" type="submit">
+                                <i class="fa fa-search"/>
+                            </button>
                         </div>
-                    </div>
+                    </form>
+                </div>
+            </div>
 
                     <!-- Search Results -->
                     <t t-if="articles">
@@ -87,7 +85,7 @@
                                                     <t t-out="cat.name"/>
                                                 </h6>
                                                 <p class="card-text text-muted small">
-                                                    <t t-out="cat.article_count"/> articles
+                                                    <t t-out="category_article_counts.get(cat.id, 0)"/> articles
                                                 </p>
                                             </div>
                                         </div>
@@ -100,12 +98,10 @@
                     <!-- CTA -->
                     <div class="text-center mt-5 py-4">
                         <p class="text-muted mb-2">Can't find what you're looking for?</p>
-                        <a href="/my/support/ticket/new" class="btn btn-primary">
+                        <a href="/my/support/ticket/new" class="btn ft-btn-purple">
                             <i class="fa fa-plus me-1"/> Submit a Support Ticket
                         </a>
                     </div>
-                </div>
-            </div>
         </t>
     </template>
 

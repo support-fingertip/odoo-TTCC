@@ -1,10 +1,12 @@
 /** @odoo-module **/
 
+import publicWidget from "@web/legacy/js/public/public_widget";
+
 /**
  * FT Helpdesk Portal JavaScript
  * Handles dynamic form interactions on the ticket creation page.
  */
-document.addEventListener('DOMContentLoaded', function () {
+function _initPortal() {
 
     // =============================
     // Category -> Subcategory
@@ -211,4 +213,163 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 500);
         });
     }
+
+    // =============================
+    // AJAX Tab Switching
+    // =============================
+    // (Handled by publicWidget below)
+}
+
+// Ensure init runs whether DOMContentLoaded already fired or not
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _initPortal);
+} else {
+    _initPortal();
+}
+
+// =============================
+// AJAX Tab Switching Widget
+// =============================
+const TAB_URLS = ['/my/support/tickets', '/my/support/milestones', '/my/support/releases', '/my/support/kb'];
+
+function getTabBaseUrl(url) {
+    try {
+        const path = new URL(url, window.location.origin).pathname;
+        return TAB_URLS.find(function (t) { return path.startsWith(t); }) || null;
+    } catch (_e) {
+        return null;
+    }
+}
+
+function isTabPageLink(href) {
+    if (!href) return false;
+    try {
+        const path = new URL(href, window.location.origin).pathname;
+        return TAB_URLS.some(function (t) {
+            if (path === t) return true;
+            // Allow filter/sort URLs (same base path, no further sub-path segments)
+            var rest = path.replace(t, '').replace(/^\//, '');
+            return path.startsWith(t) && !rest.includes('/') && rest === '';
+        });
+    } catch (_e) {
+        return false;
+    }
+}
+
+publicWidget.registry.FtSupportTabs = publicWidget.Widget.extend({
+    selector: '.ft-support-portal',
+
+    start: function () {
+        var self = this;
+        console.log('[FtSupportTabs] Widget initialized on', this.el);
+        this._isLoading = false;
+        this._tabContainer = this.el.querySelector('.ft-support-tabs');
+        this._contentContainer = this.el.querySelector('.ft-tab-content');
+        console.log('[FtSupportTabs] tabContainer:', !!this._tabContainer, 'contentContainer:', !!this._contentContainer);
+        if (this._tabContainer && this._contentContainer) {
+            this._attachTabListeners();
+            this._attachContentListeners();
+            history.replaceState({ ftAjax: true, url: window.location.href }, '', window.location.href);
+            this._onPopState = this._onPopState.bind(this);
+            window.addEventListener('popstate', this._onPopState);
+        }
+        return this._super.apply(this, arguments);
+    },
+
+    destroy: function () {
+        if (this._onPopState) {
+            window.removeEventListener('popstate', this._onPopState);
+        }
+        return this._super.apply(this, arguments);
+    },
+
+    _onPopState: function (e) {
+        if (e.state && e.state.ftAjax && e.state.url) {
+            this._loadContent(e.state.url, false);
+        }
+    },
+
+    _setActiveTab: function (url) {
+        var baseUrl = getTabBaseUrl(url);
+        if (!baseUrl || !this._tabContainer) return;
+        this._tabContainer.querySelectorAll('.nav-link').forEach(function (link) {
+            var linkHref = link.getAttribute('href');
+            if (linkHref && baseUrl.startsWith(linkHref.split('?')[0])) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    },
+
+    _loadContent: async function (url, doPushState) {
+        if (this._isLoading) return;
+        this._isLoading = true;
+        var contentEl = this._contentContainer;
+        contentEl.style.opacity = '0.5';
+        contentEl.style.pointerEvents = 'none';
+        try {
+            var response = await fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+            if (!response.ok) throw new Error('Request failed');
+            var html = await response.text();
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(html, 'text/html');
+            var newContent = doc.querySelector('.ft-tab-content');
+            if (newContent) {
+                contentEl.innerHTML = newContent.innerHTML;
+            }
+            this._setActiveTab(url);
+            if (doPushState) {
+                history.pushState({ ftAjax: true, url: url }, '', url);
+            }
+            this._attachContentListeners();
+        } catch (_e) {
+            window.location.href = url;
+        } finally {
+            contentEl.style.opacity = '';
+            contentEl.style.pointerEvents = '';
+            this._isLoading = false;
+        }
+    },
+
+    _attachTabListeners: function () {
+        var self = this;
+        this._tabContainer.querySelectorAll('.nav-link').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                self._loadContent(this.getAttribute('href'), true);
+            });
+        });
+    },
+
+    _attachContentListeners: function () {
+        var self = this;
+        if (!this._contentContainer) return;
+        // Intercept filter/sort links
+        this._contentContainer.querySelectorAll('a').forEach(function (link) {
+            var href = link.getAttribute('href');
+            if (href && isTabPageLink(href)) {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    self._loadContent(href, true);
+                });
+            }
+        });
+        // Intercept search forms
+        this._contentContainer.querySelectorAll('form').forEach(function (form) {
+            var action = form.getAttribute('action');
+            if (action && isTabPageLink(action)) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    var formData = new FormData(form);
+                    var params = new URLSearchParams(formData).toString();
+                    var url = action + (params ? '?' + params : '');
+                    self._loadContent(url, true);
+                });
+            }
+        });
+    },
 });

@@ -3,14 +3,22 @@
     <!-- Add Support to portal menu -->
     <template id="portal_my_home_helpdesk" name="Show Support"
               inherit_id="portal.portal_my_home" priority="40">
-        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
-            <t t-call="portal.portal_docs_entry">
-                <t t-set="icon" t-value="'/ft_helpdesk_core/static/description/icon.png'"/>
-                <t t-set="title">Support Tickets</t>
-                <t t-set="text">View and manage your support tickets</t>
-                <t t-set="url" t-value="'/my/support'"/>
-                <t t-set="placeholder_count" t-value="'ticket_count'"/>
-            </t>
+        <!-- Support Tickets card removed: /my/home is now redirected for portal users -->
+    </template>
+
+    <!-- Override "My Account" dropdown link to point to /my/support -->
+    <template id="portal_account_link_override" name="My Account Link Override"
+              inherit_id="portal.my_account_link" priority="30">
+        <xpath expr="//a[@href='/my/home']" position="attributes">
+            <attribute name="href">/my/support</attribute>
+        </xpath>
+    </template>
+
+    <!-- Breadcrumb: hide home icon for portal users -->
+    <template id="portal_breadcrumb_home_override" name="Support Home Breadcrumb"
+              inherit_id="portal.portal_breadcrumbs" priority="30">
+        <xpath expr="//li[hasclass('breadcrumb-item')]/a[@href='/my/home']/.." position="replace">
+            <!-- Home breadcrumb item removed -->
         </xpath>
     </template>
 
@@ -22,7 +30,7 @@
                 class="breadcrumb-item active">
                 Support
             </li>
-            <li t-if="page_name in ('ticket_list', 'ticket_create', 'ticket_detail')"
+            <li t-if="page_name in ('ticket_list', 'ticket_create', 'ticket_detail', 'milestones', 'releases')"
                 class="breadcrumb-item">
                 <a href="/my/support">Support</a>
             </li>
@@ -37,6 +45,14 @@
             <li t-if="page_name == 'ticket_detail'"
                 class="breadcrumb-item active">
                 <t t-out="ticket.ticket_no"/>
+            </li>
+            <li t-if="page_name == 'milestones'"
+                class="breadcrumb-item active">
+                Milestones
+            </li>
+            <li t-if="page_name == 'releases'"
+                class="breadcrumb-item active">
+                Releases
             </li>
         </xpath>
     </template>
