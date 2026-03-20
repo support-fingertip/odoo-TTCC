@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_tt_quotation_category_user,tt.quotation.category.user,model_tt_quotation_category,sale.group_sale_salesman,1,1,1,1
+access_tt_quotation_line_user,tt.quotation.line.user,model_tt_quotation_line,sale.group_sale_salesman,1,1,1,1
+access_tt_payment_schedule_line_user,tt.payment.schedule.line.user,model_tt_payment_schedule_line,sale.group_sale_salesman,1,1,1,1
+access_tt_material_specification_user,tt.material.specification.user,model_tt_material_specification,sale.group_sale_salesman,1,1,1,1

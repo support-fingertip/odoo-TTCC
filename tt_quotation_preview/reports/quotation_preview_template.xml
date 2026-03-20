@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_quotation_preview">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- ======================================== -->
+                        <!-- HEADER -->
+                        <!-- ======================================== -->
+                        <div style="background-color: #333; color: #fff; padding: 12px 20px; margin-bottom: 20px;">
+                            <h2 style="margin: 0; color: #fff;">Quotation Preview</h2>
+                        </div>
+
+                        <!-- ======================================== -->
+                        <!-- CATEGORY-WISE BREAKDOWN -->
+                        <!-- ======================================== -->
+                        <t t-foreach="doc.tt_category_ids" t-as="category">
+                            <h3 style="margin-top: 25px; margin-bottom: 10px;">
+                                Category - <t t-out="category.name"/> :
+                            </h3>
+
+                            <table class="table table-bordered table-sm" style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background-color: #555; color: #fff;">
+                                        <th style="padding: 8px;">Category</th>
+                                        <th style="padding: 8px;">Subcategory</th>
+                                        <th style="padding: 8px;">Service Item</th>
+                                        <th style="padding: 8px;">Item Name</th>
+                                        <th style="padding: 8px; text-align: center;">Qty</th>
+                                        <th style="padding: 8px; text-align: center;">Unit</th>
+                                        <th style="padding: 8px; text-align: right;">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Category Header Row -->
+                                    <tr style="background-color: #eee; font-weight: bold;">
+                                        <td colspan="7" style="padding: 8px;">
+                                            <t t-out="category.name"/>
+                                        </td>
+                                    </tr>
+                                    <!-- Line Items -->
+                                    <t t-foreach="category.line_ids" t-as="line">
+                                        <tr>
+                                            <td style="padding: 8px; vertical-align: top;">
+                                                <t t-out="line.category_name"/>
+                                            </td>
+                                            <td style="padding: 8px; vertical-align: top;">
+                                                <t t-out="line.subcategory"/>
+                                            </td>
+                                            <td style="padding: 8px; vertical-align: top; font-size: 11px;">
+                                                <t t-out="line.service_item"/>
+                                            </td>
+                                            <td style="padding: 8px; vertical-align: top;">
+                                                <t t-out="line.item_name"/>
+                                            </td>
+                                            <td style="padding: 8px; text-align: center; vertical-align: top;">
+                                                <t t-out="int(line.quantity) if line.quantity == int(line.quantity) else line.quantity"/>
+                                            </td>
+                                            <td style="padding: 8px; text-align: center; vertical-align: top;">
+                                                <t t-out="line.unit"/>
+                                            </td>
+                                            <td style="padding: 8px; text-align: right; vertical-align: top;">
+                                                &#x20B9;<t t-out="'%.2f' % line.amount"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+
+                            <!-- Category Summary -->
+                            <table class="table table-bordered table-sm" style="width: 100%; border-collapse: collapse; margin-top: 5px;">
+                                <tr>
+                                    <td style="padding: 8px; font-weight: bold; width: 70%;">TOTAL:</td>
+                                    <td style="padding: 8px; text-align: right; font-weight: bold;">
+                                        &#x20B9;<t t-out="'%.2f' % category.subtotal"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; font-weight: bold;">GST (18%):</td>
+                                    <td style="padding: 8px; text-align: right; font-weight: bold;">
+                                        &#x20B9;<t t-out="'%.2f' % category.gst_amount"/>
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #f5f0d0;">
+                                    <td style="padding: 8px; font-weight: bold;">GRAND TOTAL:</td>
+                                    <td style="padding: 8px; text-align: right; font-weight: bold; color: #c00;">
+                                        &#x20B9;<t t-out="'%.2f' % category.grand_total"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </t>
+
+                        <!-- ======================================== -->
+                        <!-- OVERALL SUMMARY -->
+                        <!-- ======================================== -->
+                        <h3 style="margin-top: 30px; margin-bottom: 10px;">Overall Summary</h3>
+                        <table class="table table-bordered table-sm" style="width: 100%; border-collapse: collapse;">
+                            <t t-if="doc.tt_floor_protection">
+                                <tr>
+                                    <td style="padding: 8px; font-weight: bold; width: 70%;">Floor Protection (per sqft):</td>
+                                    <td style="padding: 8px; text-align: right; font-weight: bold;">
+                                        &#x20B9;<t t-out="'%.2f' % doc.tt_floor_protection"/>
+                                    </td>
+                                </tr>
+                            </t>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Platform Fee (7%):</td>
+                                <td style="padding: 8px; text-align: right; font-weight: bold;">
+                                    &#x20B9;<t t-out="'%.2f' % doc.tt_platform_fee"/>
+                                </td>
+                            </tr>
+                            <tr style="background-color: #f5f0d0;">
+                                <td style="padding: 8px; font-weight: bold;">GRAND TOTAL:</td>
+                                <td style="padding: 8px; text-align: right; font-weight: bold; color: #c00;">
+                                    &#x20B9;<t t-out="'%.2f' % doc.tt_grand_total"/>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- ======================================== -->
+                        <!-- PAYMENT SCHEDULE -->
+                        <!-- ======================================== -->
+                        <t t-if="doc.tt_payment_schedule_ids">
+                            <div style="margin-top: 30px;">
+                                <table class="table table-bordered table-sm" style="width: 100%; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="background-color: #555; color: #fff;">
+                                            <th style="padding: 10px;">PAYMENT SCHEDULE</th>
+                                            <th style="padding: 10px; text-align: right;">INR</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="doc.tt_payment_schedule_ids" t-as="schedule">
+                                            <tr>
+                                                <td style="padding: 8px;">
+                                                    <t t-out="schedule.name"/>
+                                                </td>
+                                                <td style="padding: 8px; text-align: right;">
+                                                    <t t-out="'%.2f' % schedule.amount"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                        <tr style="background-color: #f5f0d0; font-weight: bold;">
+                                            <td style="padding: 8px;">TOTAL</td>
+                                            <td style="padding: 8px; text-align: right;">
+                                                <t t-out="'%.2f' % sum(doc.tt_payment_schedule_ids.mapped('amount'))"/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </t>
+
+                        <!-- ======================================== -->
+                        <!-- MATERIAL SPECIFICATIONS -->
+                        <!-- ======================================== -->
+                        <t t-if="doc.tt_material_spec_ids">
+                            <h3 style="margin-top: 30px; margin-bottom: 10px;">
+                                Quotation - Interiors:
+                            </h3>
+                            <table class="table table-bordered table-sm" style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background-color: #555; color: #fff;">
+                                        <th colspan="2" style="padding: 10px;">
+                                            PRODUCT AND MATERIAL SPECIFICATIONS
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="doc.tt_material_spec_ids" t-as="spec">
+                                        <tr>
+                                            <td style="padding: 8px; width: 40%; font-weight: bold;">
+                                                <t t-out="spec.name"/>
+                                            </td>
+                                            <td style="padding: 8px;">
+                                                <t t-out="spec.value"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </t>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>
