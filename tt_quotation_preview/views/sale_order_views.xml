@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Quotation Line Tree (inline in category form) -->
+    <!-- ============================================================ -->
+    <record id="tt_quotation_line_tree" model="ir.ui.view">
+        <field name="name">tt.quotation.line.tree</field>
+        <field name="model">tt.quotation.line</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="category_name"/>
+                <field name="subcategory"/>
+                <field name="service_item"/>
+                <field name="item_name"/>
+                <field name="quantity"/>
+                <field name="unit"/>
+                <field name="unit_price"/>
+                <field name="amount" sum="Total"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Quotation Category Form (inline in sale order) -->
+    <!-- ============================================================ -->
+    <record id="tt_quotation_category_form" model="ir.ui.view">
+        <field name="name">tt.quotation.category.form</field>
+        <field name="model">tt.quotation.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="subtotal"/>
+                            <field name="gst_amount"/>
+                            <field name="grand_total"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Line Items">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="category_name"/>
+                                    <field name="subcategory"/>
+                                    <field name="service_item"/>
+                                    <field name="item_name"/>
+                                    <field name="quantity"/>
+                                    <field name="unit"/>
+                                    <field name="unit_price"/>
+                                    <field name="amount" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Sale Order Form - Inherit to add custom tabs -->
+    <!-- ============================================================ -->
+    <record id="sale_order_form_inherit_tt_quotation" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.tt.quotation</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+
+                <!-- Tab: Quotation Categories -->
+                <page string="Quotation Categories" name="tt_categories">
+                    <field name="tt_category_ids">
+                        <list>
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="subtotal" sum="Total"/>
+                            <field name="gst_amount" sum="GST"/>
+                            <field name="grand_total" sum="Grand Total"/>
+                        </list>
+                    </field>
+                    <group class="oe_subtotal_footer">
+                        <field name="tt_floor_protection"/>
+                        <field name="tt_categories_total"/>
+                        <field name="tt_platform_fee"/>
+                        <field name="tt_grand_total" class="oe_subtotal_footer_separator"/>
+                    </group>
+                </page>
+
+                <!-- Tab: Payment Schedule -->
+                <page string="Payment Schedule" name="tt_payment_schedule">
+                    <button name="action_generate_payment_schedule"
+                            type="object"
+                            string="Generate Payment Schedule"
+                            class="btn-primary mb-3"/>
+                    <field name="tt_payment_schedule_ids">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="percentage"/>
+                            <field name="amount" sum="Total"/>
+                        </list>
+                    </field>
+                </page>
+
+                <!-- Tab: Material Specifications -->
+                <page string="Material Specifications" name="tt_material_specs">
+                    <field name="tt_material_spec_ids">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="value"/>
+                        </list>
+                    </field>
+                </page>
+
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
