@@ -38,13 +38,8 @@
                         </div>
 
                         <h1 class="ft-login-welcome">
-                            Welcome to<br/>
-                            <span>Your Support Portal</span>
+                            Welcome back
                         </h1>
-                        <p class="ft-login-tagline">
-                            Track tickets, view milestones, and stay
-                            updated on releases &#8212; all in one place.
-                        </p>
 
                         <!-- SVG Laptop Illustration -->
                         <div class="ft-login-illustration">
@@ -96,7 +91,6 @@
                             <!-- Inject the original Odoo login form (web.login content) -->
                             <t t-out="0"/>
                         </div>
-                        <p class="ft-login-powered">Powered by Odoo</p>
                     </div>
                 </div>
             </div>

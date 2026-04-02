@@ -8,22 +8,22 @@
             <t t-set="additional_title">Support</t>
             <div class="o_portal_wrap ft-support-portal">
                 <div class="container py-4">
-                    <!-- Hero Banner (above tabs) -->
-                    <div class="ft-landing-hero text-center text-white rounded-3 p-5 mb-4">
-                        <div class="py-3">
-                            <i class="fa fa-headphones fa-3x mb-3" style="opacity: 0.9;"/>
-                            <h2 class="fw-bold mb-2">Welcome to Your Support Portal</h2>
-                            <p class="mb-4" style="opacity: 0.85; font-size: 1.05rem;">
-                                Track your tickets, monitor project milestones, and stay updated on releases — all in one place.
-                            </p>
-                            <a href="/my/support/ticket/new" class="btn btn-light btn-lg px-4 fw-semibold">
-                                <i class="fa fa-plus me-2"/>Create New Ticket
-                            </a>
-                        </div>
+                    <!-- Page Header -->
+                    <div class="ft-page-header text-center text-white rounded-3 p-4 mb-4">
+                        <i class="fa fa-headphones fa-2x mb-2" style="opacity: 0.85;"/>
+                        <h2 class="fw-bold mb-1">Welcome to Your Support Portal</h2>
                     </div>
 
                     <!-- Navigation Tabs -->
                     <ul class="nav nav-tabs ft-support-tabs mb-4" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" href="/my/support/projects">
+                                <i class="fa fa-cubes me-1"/> Projects
+                                <t t-if="project_count">
+                                    <span class="badge text-bg-secondary ms-1"><t t-out="project_count"/></span>
+                                </t>
+                            </a>
+                        </li>
                         <li class="nav-item" role="presentation">
                             <a class="nav-link" href="/my/support/tickets">
                                 <i class="fa fa-ticket me-1"/> Tickets
@@ -75,6 +75,15 @@
                     <!-- Navigation Tabs -->
                     <ul class="nav nav-tabs ft-support-tabs mb-4" role="tablist">
                         <li class="nav-item" role="presentation">
+                            <a t-attf-class="nav-link #{active_tab == 'projects' and 'active' or ''}"
+                               href="/my/support/projects">
+                                <i class="fa fa-cubes me-1"/> Projects
+                                <t t-if="project_count">
+                                    <span class="badge text-bg-secondary ms-1"><t t-out="project_count"/></span>
+                                </t>
+                            </a>
+                        </li>
+                        <li class="nav-item" role="presentation">
                             <a t-attf-class="nav-link #{active_tab == 'tickets' and 'active' or ''}"
                                href="/my/support/tickets">
                                 <i class="fa fa-ticket me-1"/> Tickets
@@ -118,6 +127,128 @@
                     </div>
                 </div>
             </div>
+        </t>
+    </template>
+
+    <!-- ============================= -->
+    <!-- PROJECTS TAB CONTENT          -->
+    <!-- ============================= -->
+    <template id="portal_support_projects" name="Support Projects">
+        <t t-call="ft_helpdesk_portal.portal_support_home">
+            <!-- Page Header -->
+            <div class="ft-page-header text-center text-white rounded-3 p-4 mb-4">
+                <i class="fa fa-cubes fa-2x mb-2" style="opacity: 0.85;"/>
+                <h2 class="fw-bold mb-1">Projects</h2>
+                <p class="mb-0" style="opacity: 0.8;">Overview of your active projects</p>
+            </div>
+
+            <t t-if="projects">
+                <div class="row g-4">
+                    <t t-foreach="projects" t-as="proj">
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <h5 class="fw-bold mb-0">
+                                            <i class="fa fa-folder-open me-2 text-primary"/>
+                                            <t t-esc="proj.name"/>
+                                        </h5>
+                                        <div class="d-flex gap-1 flex-wrap justify-content-end">
+                                            <t t-if="proj.last_update_status == 'on_track'">
+                                                <span class="badge text-bg-success">On Track</span>
+                                            </t>
+                                            <t t-elif="proj.last_update_status == 'at_risk'">
+                                                <span class="badge text-bg-warning">At Risk</span>
+                                            </t>
+                                            <t t-elif="proj.last_update_status == 'off_track'">
+                                                <span class="badge text-bg-danger">Off Track</span>
+                                            </t>
+                                            <t t-elif="proj.last_update_status == 'done'">
+                                                <span class="badge text-bg-primary">Done</span>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="badge text-bg-secondary">In Progress</span>
+                                            </t>
+                                            <t t-if="proj.is_project_overtime">
+                                                <span class="badge text-bg-danger">Overtime</span>
+                                            </t>
+                                        </div>
+                                    </div>
+                                    <table class="table table-borderless mb-0 small">
+                                        <tbody>
+                                            <t t-if="proj.partner_id">
+                                                <tr>
+                                                    <td class="text-muted py-1 ps-0" style="width:45%;">Customer</td>
+                                                    <td class="py-1"><t t-esc="proj.partner_id.name"/></td>
+                                                </tr>
+                                            </t>
+                                            <t t-if="proj.user_id">
+                                                <tr>
+                                                    <td class="text-muted py-1 ps-0">Project Manager</td>
+                                                    <td class="py-1"><t t-esc="proj.user_id.name"/></td>
+                                                </tr>
+                                            </t>
+                                            <t t-if="proj.date_start">
+                                                <tr>
+                                                    <td class="text-muted py-1 ps-0">Start Date</td>
+                                                    <td class="py-1">
+                                                        <t t-esc="proj.date_start"
+                                                           t-options='{"widget": "date"}'/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                            <t t-if="proj.date">
+                                                <tr>
+                                                    <td class="text-muted py-1 ps-0">Expected Closure</td>
+                                                    <td class="py-1">
+                                                        <t t-esc="proj.date"
+                                                           t-options='{"widget": "date"}'/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                            <t t-if="proj.allocated_hours">
+                                                <tr>
+                                                    <td class="text-muted py-1 ps-0">Allocated Hours</td>
+                                                    <td class="py-1">
+                                                        <t t-esc="'%.2f hrs' % proj.allocated_hours"/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                            <tr>
+                                                <td class="text-muted py-1 ps-0">Time Spent</td>
+                                                <td class="py-1">
+                                                    <t t-esc="'%.2f hrs' % proj.effective_hours"/>
+                                                </td>
+                                            </tr>
+                                            <t t-if="proj.allocated_hours">
+                                                <tr>
+                                                    <td class="text-muted py-1 ps-0">Time Remaining</td>
+                                                    <td class="py-1">
+                                                        <t t-if="proj.remaining_hours >= 0">
+                                                            <t t-esc="'%.2f hrs' % proj.remaining_hours"/>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <span class="text-danger fw-medium">
+                                                                <t t-esc="'%.2f hrs over' % abs(proj.remaining_hours)"/>
+                                                            </span>
+                                                        </t>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="text-center py-5">
+                    <i class="fa fa-cubes fa-3x text-muted mb-3" style="opacity: 0.3;"/>
+                    <p class="text-muted">No projects found.</p>
+                </div>
+            </t>
         </t>
     </template>
 

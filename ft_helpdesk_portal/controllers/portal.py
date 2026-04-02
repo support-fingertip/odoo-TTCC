@@ -32,7 +32,8 @@ class HelpdeskPortal(CustomerPortal):
 
     def _get_support_tab_values(self, active_tab='tickets'):
         """Return values shared by all support tabs (counts for badges)."""
-        partner = request.env.user.partner_id
+        user = request.env.user
+        partner = user.partner_id
         commercial_partner = partner.commercial_partner_id
         Ticket = request.env['ft.helpdesk.ticket'].sudo()
         ticket_domain = [('customer_id.commercial_partner_id', '=', commercial_partner.id)]
@@ -53,10 +54,20 @@ class HelpdeskPortal(CustomerPortal):
             [('portal_published', '=', True)]
         )
 
+        if user.has_group('base.group_user'):
+            project_count = request.env['project.project'].sudo().search_count([
+                ('user_id', '=', user.id),
+            ])
+        else:
+            project_count = request.env['project.project'].sudo().search_count([
+                ('partner_id', '=', commercial_partner.id),
+            ])
+
         return {
             'page_name': 'support_home',
             'active_tab': active_tab,
             'ticket_count': Ticket.search_count(ticket_domain),
+            'project_count': project_count,
             'milestone_count': milestone_count,
             'release_count': release_count,
             'kb_count': kb_count,
@@ -83,6 +94,30 @@ class HelpdeskPortal(CustomerPortal):
         values = self._get_support_tab_values()
         values['active_tab'] = ''
         return request.render('ft_helpdesk_portal.portal_support_landing', values)
+
+    # =============================
+    # Projects Tab
+    # =============================
+
+    @http.route('/my/support/projects', type='http', auth='user', website=True)
+    def portal_support_projects(self, **kw):
+        values = self._get_support_tab_values('projects')
+        values.pop('project_ids')
+        values.pop('ticket_domain')
+
+        user = request.env.user
+        partner = user.partner_id
+        if user.has_group('base.group_user'):
+            projects = request.env['project.project'].sudo().search([
+                ('user_id', '=', user.id),
+            ], order='name')
+        else:
+            projects = request.env['project.project'].sudo().search([
+                ('partner_id', '=', partner.commercial_partner_id.id),
+            ], order='name')
+
+        values['projects'] = projects
+        return request.render('ft_helpdesk_portal.portal_support_projects', values)
 
     # =============================
     # Milestones Tab
@@ -478,12 +513,6 @@ class HelpdeskPortal(CustomerPortal):
             ('res_id', '=', ticket.id),
         ])
 
-        # Fetch project milestones linked to the ticket's project
-        milestones = request.env['project.custom.milestone'].sudo().search(
-            [('project_id', '=', ticket.project_id.id)],
-            order='due_date asc, id asc',
-        ) if ticket.project_id else request.env['project.custom.milestone']
-
         # Portal settings
         allow_close = request.env['ir.config_parameter'].sudo().get_param(
             'ft_helpdesk.portal_allow_close', 'False') == 'True'
@@ -495,7 +524,6 @@ class HelpdeskPortal(CustomerPortal):
             'ticket': ticket,
             'messages': messages,
             'attachments': attachments,
-            'milestones': milestones,
             'allow_close': allow_close,
             'allow_reopen': allow_reopen,
             'just_created': kw.get('just_created'),

@@ -217,7 +217,7 @@ function _initPortal() {
     // =============================
     // AJAX Tab Switching
     // =============================
-    // (Handled by publicWidget below)
+    _initTabSwitching();
 }
 
 // Ensure init runs whether DOMContentLoaded already fired or not
@@ -228,148 +228,124 @@ if (document.readyState === 'loading') {
 }
 
 // =============================
-// AJAX Tab Switching Widget
+// AJAX Tab Switching (standalone — no publicWidget dependency)
 // =============================
-const TAB_URLS = ['/my/support/tickets', '/my/support/milestones', '/my/support/releases', '/my/support/kb'];
-
-function getTabBaseUrl(url) {
-    try {
-        const path = new URL(url, window.location.origin).pathname;
-        return TAB_URLS.find(function (t) { return path.startsWith(t); }) || null;
-    } catch (_e) {
-        return null;
-    }
-}
+const TAB_URLS = [
+    '/my/support/projects',
+    '/my/support/tickets',
+    '/my/support/milestones',
+    '/my/support/releases',
+    '/my/support/kb',
+];
 
 function isTabPageLink(href) {
     if (!href) return false;
     try {
-        const path = new URL(href, window.location.origin).pathname;
+        var path = new URL(href, window.location.origin).pathname;
         return TAB_URLS.some(function (t) {
-            if (path === t) return true;
-            // Allow filter/sort URLs (same base path, no further sub-path segments)
-            var rest = path.replace(t, '').replace(/^\//, '');
-            return path.startsWith(t) && !rest.includes('/') && rest === '';
+            return path === t || path.startsWith(t + '?');
         });
     } catch (_e) {
         return false;
     }
 }
 
-publicWidget.registry.FtSupportTabs = publicWidget.Widget.extend({
-    selector: '.ft-support-portal',
+function _initTabSwitching() {
+    var portalEl = document.querySelector('.ft-support-portal');
+    if (!portalEl) return;
 
-    start: function () {
-        var self = this;
-        console.log('[FtSupportTabs] Widget initialized on', this.el);
-        this._isLoading = false;
-        this._tabContainer = this.el.querySelector('.ft-support-tabs');
-        this._contentContainer = this.el.querySelector('.ft-tab-content');
-        console.log('[FtSupportTabs] tabContainer:', !!this._tabContainer, 'contentContainer:', !!this._contentContainer);
-        if (this._tabContainer && this._contentContainer) {
-            this._attachTabListeners();
-            this._attachContentListeners();
-            history.replaceState({ ftAjax: true, url: window.location.href }, '', window.location.href);
-            this._onPopState = this._onPopState.bind(this);
-            window.addEventListener('popstate', this._onPopState);
-        }
-        return this._super.apply(this, arguments);
-    },
+    var tabContainer = portalEl.querySelector('.ft-support-tabs');
+    var contentContainer = portalEl.querySelector('.ft-tab-content');
+    if (!tabContainer || !contentContainer) return;
 
-    destroy: function () {
-        if (this._onPopState) {
-            window.removeEventListener('popstate', this._onPopState);
-        }
-        return this._super.apply(this, arguments);
-    },
+    var isLoading = false;
 
-    _onPopState: function (e) {
-        if (e.state && e.state.ftAjax && e.state.url) {
-            this._loadContent(e.state.url, false);
-        }
-    },
-
-    _setActiveTab: function (url) {
-        var baseUrl = getTabBaseUrl(url);
-        if (!baseUrl || !this._tabContainer) return;
-        this._tabContainer.querySelectorAll('.nav-link').forEach(function (link) {
+    function setActiveTab(url) {
+        var path;
+        try { path = new URL(url, window.location.origin).pathname; } catch (_e) { return; }
+        tabContainer.querySelectorAll('.nav-link').forEach(function (link) {
             var linkHref = link.getAttribute('href');
-            if (linkHref && baseUrl.startsWith(linkHref.split('?')[0])) {
+            if (linkHref && path.startsWith(linkHref.split('?')[0])) {
                 link.classList.add('active');
             } else {
                 link.classList.remove('active');
             }
         });
-    },
+    }
 
-    _loadContent: async function (url, doPushState) {
-        if (this._isLoading) return;
-        this._isLoading = true;
-        var contentEl = this._contentContainer;
-        contentEl.style.opacity = '0.5';
-        contentEl.style.pointerEvents = 'none';
-        try {
-            var response = await fetch(url, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                credentials: 'same-origin',
-            });
-            if (!response.ok) throw new Error('Request failed');
-            var html = await response.text();
-            var parser = new DOMParser();
-            var doc = parser.parseFromString(html, 'text/html');
-            var newContent = doc.querySelector('.ft-tab-content');
-            if (newContent) {
-                contentEl.innerHTML = newContent.innerHTML;
-            }
-            this._setActiveTab(url);
-            if (doPushState) {
-                history.pushState({ ftAjax: true, url: url }, '', url);
-            }
-            this._attachContentListeners();
-        } catch (_e) {
-            window.location.href = url;
-        } finally {
-            contentEl.style.opacity = '';
-            contentEl.style.pointerEvents = '';
-            this._isLoading = false;
-        }
-    },
-
-    _attachTabListeners: function () {
-        var self = this;
-        this._tabContainer.querySelectorAll('.nav-link').forEach(function (link) {
-            link.addEventListener('click', function (e) {
-                e.preventDefault();
-                self._loadContent(this.getAttribute('href'), true);
-            });
-        });
-    },
-
-    _attachContentListeners: function () {
-        var self = this;
-        if (!this._contentContainer) return;
-        // Intercept filter/sort links
-        this._contentContainer.querySelectorAll('a').forEach(function (link) {
+    function attachContentListeners() {
+        // Intercept filter/sort/pagination links inside tab content
+        contentContainer.querySelectorAll('a').forEach(function (link) {
             var href = link.getAttribute('href');
-            if (href && isTabPageLink(href)) {
+            if (href && isTabPageLink(href) && !link.dataset.ftAjax) {
+                link.dataset.ftAjax = '1';
                 link.addEventListener('click', function (e) {
                     e.preventDefault();
-                    self._loadContent(href, true);
+                    loadContent(href, true);
                 });
             }
         });
-        // Intercept search forms
-        this._contentContainer.querySelectorAll('form').forEach(function (form) {
+        // Intercept search forms inside tab content
+        contentContainer.querySelectorAll('form').forEach(function (form) {
             var action = form.getAttribute('action');
-            if (action && isTabPageLink(action)) {
+            if (action && isTabPageLink(action) && !form.dataset.ftAjax) {
+                form.dataset.ftAjax = '1';
                 form.addEventListener('submit', function (e) {
                     e.preventDefault();
                     var formData = new FormData(form);
                     var params = new URLSearchParams(formData).toString();
                     var url = action + (params ? '?' + params : '');
-                    self._loadContent(url, true);
+                    loadContent(url, true);
                 });
             }
         });
-    },
-});
+    }
+
+    async function loadContent(url, doPushState) {
+        if (isLoading) return;
+        isLoading = true;
+        contentContainer.style.opacity = '0.5';
+        contentContainer.style.pointerEvents = 'none';
+        try {
+            var response = await fetch(url, { credentials: 'same-origin' });
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            var html = await response.text();
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(html, 'text/html');
+            var newContent = doc.querySelector('.ft-tab-content');
+            if (!newContent) throw new Error('No .ft-tab-content found in response');
+            contentContainer.innerHTML = newContent.innerHTML;
+            setActiveTab(url);
+            if (doPushState) {
+                history.pushState({ ftAjax: true, url: url }, '', url);
+            }
+            attachContentListeners();
+        } catch (err) {
+            console.warn('[FtSupportTabs] AJAX failed, full reload:', err);
+            window.location.href = url;
+        } finally {
+            contentContainer.style.opacity = '';
+            contentContainer.style.pointerEvents = '';
+            isLoading = false;
+        }
+    }
+
+    // Attach click handlers to tab links
+    tabContainer.querySelectorAll('.nav-link').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            loadContent(this.getAttribute('href'), true);
+        });
+    });
+
+    // Attach handlers to filter/sort links already in content
+    attachContentListeners();
+
+    // Handle browser back/forward
+    history.replaceState({ ftAjax: true, url: window.location.href }, '', window.location.href);
+    window.addEventListener('popstate', function (e) {
+        if (e.state && e.state.ftAjax && e.state.url) {
+            loadContent(e.state.url, false);
+        }
+    });
+}
